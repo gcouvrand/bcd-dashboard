@@ -15,10 +15,13 @@ const getWeekDates = (start) => {
   return dates;
 };
 
-const formatDate = (date) => {
-  const options = { year: "numeric", month: "2-digit", day: "2-digit" };
-  return new Date(date).toLocaleDateString("fr-FR", options);
+const formatDateISO = (date) => {
+  return date ? date.toISOString().substring(0, 10) : undefined; // Produit "YYYY-MM-DD" si date est définie
 };
+
+// Utiliser formatDateISO partout où une date est formatée
+
+// Modifier également la fonction initiale `formatDate` pour qu'elle utilise le nouveau format si nécessaire
 
 const roundToNearestHalfHour = (date) => {
   const minutes = date.getMinutes();
@@ -39,12 +42,119 @@ const WeeklyScheduler = () => {
   const [weeklyTotal, setWeeklyTotal] = useState(0);
   const [weeklyItems, setWeeklyItems] = useState([]);
 
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [blockedDays, setBlockedDays] = useState({});
+
+  const fetchBlockedDays = async () => {
+    try {
+      const response = await axios.get(
+        "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates"
+      );
+      const blocked = {};
+      response.data.forEach((item) => {
+        blocked[formatDateISO(new Date(item.date))] = item.fullDay;
+      });
+      console.log("Blocked days fetched:", blocked);
+      setBlockedDays(blocked);
+    } catch (error) {
+      console.error("Error fetching blocked days:", error);
+    }
+  };
+
+  const toggleDayBlock = async () => {
+    const formattedDate = formatDateISO(weekDates[selectedDay]);
+    const isBlocked = blockedDays[formattedDate];
+
+    try {
+      if (isBlocked) {
+        console.log(`Sending request to unblock date ${formattedDate}`);
+        const response = await axios.delete(
+          `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates/${formattedDate}`,
+          {
+            data: { times: ["10:00", "11:00"] }, // Exemple de créneaux à débloquer
+          }
+        );
+        console.log("Response from unblocking:", response.data);
+      } else {
+        console.log(`Sending request to block date ${formattedDate}`);
+        const response = await axios.post(
+          "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates",
+          {
+            date: formattedDate,
+            fullDay: true,
+            blockedTimes: [],
+          }
+        );
+        console.log("Response from blocking:", response.data);
+      }
+      fetchBlockedDays();
+      setShowModal(false);
+    } catch (error) {
+      console.error(
+        "Error toggling day block:",
+        error.response ? error.response.data : error.message
+      );
+    }
+  };
+
+  useEffect(() => {
+    fetchBlockedDays(); // Assurez-vous que cette fonction est appelée au montage
+  }, []);
+
+  console.log(
+    "Formatted week dates:",
+    weekDates.map((date) => formatDateISO(date))
+  );
+  console.log("Blocked days from state:", blockedDays);
+
+  const handleDayClick = (index) => {
+    setSelectedDay(index);
+    setShowModal(true);
+  };
+
+  const Modal = () => {
+    if (!showModal) return null;
+
+    const date = weekDates[selectedDay];
+    const formattedDate = formatDateISO(date);
+    const isBlocked = blockedDays[formattedDate];
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-white w-full max-w-md">
+          <h4 className="text-lg font-semibold mb-4">
+            {isBlocked ? "Débloquer" : "Bloquer"} le {formattedDate} ?
+          </h4>
+          <div className="flex justify-around">
+            <button
+              onClick={toggleDayBlock}
+              className="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out"
+            >
+              Oui
+            </button>
+            <button
+              onClick={() => setShowModal(false)}
+              className="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out"
+            >
+              Non
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   useEffect(() => {
     const monday = new Date(weekStartDate);
     monday.setDate(monday.getDate() - monday.getDay() + 1); // Ajuster au lundi de la semaine
+    console.log("Calculated Monday:", monday);
     const dates = getWeekDates(monday);
+    console.log("Week dates:", dates);
     setWeekDates(dates);
-    loadOrders(dates[0]);
+    if (dates.length > 0) {
+      loadOrders(dates[0]);
+    }
   }, [weekStartDate]);
 
   const loadOrders = async (startDate) => {
@@ -184,7 +294,7 @@ const WeeklyScheduler = () => {
   const formatWeekRange = (startDate) => {
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 4);
-    return `${formatDate(startDate)} au ${formatDate(endDate)}`;
+    return `${formatDateISO(startDate)} au ${formatDateISO(endDate)}`;
   };
 
   return (
@@ -192,6 +302,7 @@ const WeeklyScheduler = () => {
       <div className="container mx-auto px-4 py-6 flex space-x-4">
         <div className="flex flex-col flex-grow">
           <div className="flex justify-between items-center mb-6">
+            <Modal></Modal>
             <button
               onClick={handlePrevWeek}
               className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500 transition duration-200"
@@ -210,68 +321,101 @@ const WeeklyScheduler = () => {
           </div>
           <div className="flex w-full max-w-7xl mx-auto mt-10">
             {days.map((day, index) => (
-              // Colonne des jours
               <div
                 key={day}
-                className="flex flex-col flex-grow border-r border-gray-500 last:border-r-0"
+                className={`flex flex-col flex-grow border-r border-gray-500 last:border-r-0 ${
+                  blockedDays[formatDateISO(weekDates[index])]
+                    ? "bg-gray-600"
+                    : ""
+                }`}
+                onClick={() => handleDayClick(index)}
               >
-                <h2 className="bg-gray-700 text-white text-lg font-bold p-2 text-center border-b border-gray-500">
+                <h2
+                  className={`text-lg font-bold p-2 text-center border-b border-gray-500 cursor-pointer ${
+                    blockedDays[formatDateISO(weekDates[index])]
+                      ? "bg-gray-700 text-gray-400"
+                      : "bg-gray-700 text-white"
+                  }`}
+                >
                   {`${day} ${
-                    weekDates[index] ? formatDate(weekDates[index]) : ""
+                    weekDates[index] ? formatDateISO(weekDates[index]) : ""
                   }`}
                 </h2>
-                <div className="flex-grow flex flex-col justify-between">
+
+                <div
+                  className={`flex-grow flex flex-col justify-between ${
+                    blockedDays[formatDateISO(weekDates[index])]
+                      ? "bg-gray-600"
+                      : ""
+                  }`}
+                >
                   <div
-                    className="flex flex-col flex-grow divide-y divide-gray-600"
+                    className={`flex flex-col flex-grow divide-y divide-gray-600 ${
+                      blockedDays[formatDateISO(weekDates[index])]
+                        ? "divide-gray-700"
+                        : ""
+                    }`}
                     style={{ minHeight: "90vh" }}
                   >
-                    {hours.map((hour, i) => {
-                      const hourKey = `${Math.floor(hour)}:${
-                        hour % 1 === 0 ? "00" : "30"
-                      }`;
-                      const tasks = orders[day] && orders[day][hourKey];
-                      return (
-                        <div
-                          key={i}
-                          className={`flex items-start p-2 text-xs flex-grow ${
-                            tasks ? "bg-red-200" : "bg-green-200"
-                          } hover:bg-opacity-75 cursor-pointer transition duration-200 ease-in-out`}
-                          style={{ flex: 1 }}
-                        >
-                          <div className="w-16 font-semibold text-gray-900">
-                            {hourKey}
-                          </div>
-                          <div className="flex flex-col flex-grow">
-                            {tasks ? (
-                              <>
-                                <div className="text-gray-800 font-semibold">
-                                  {tasks.city}
-                                </div>
-                                {tasks.items.map((item, index) => (
-                                  <div key={index} className="text-gray-800">
-                                    {item.name} - {item.quantity}
-                                  </div>
-                                ))}
-                              </>
-                            ) : (
-                              <div className="text-gray-500 flex-grow">
-                                Libre
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+{hours.map((hour, i) => {
+  const hourKey = `${Math.floor(hour)}:${hour % 1 === 0 ? "00" : "30"}`;
+  const tasks = orders[day] && orders[day][hourKey];
+  return (
+    <div
+      key={i}
+      className={`flex items-start p-2 text-xs flex-grow ${
+        tasks ? "bg-red-200" : (blockedDays[formatDateISO(weekDates[index])] ? "bg-gray-600 text-gray-400" : "bg-green-200")
+      } hover:bg-opacity-75 cursor-pointer transition duration-200 ease-in-out`}
+    >
+      <div className="w-16 font-semibold text-gray-900">
+        {hourKey}
+      </div>
+      <div className="flex flex-col flex-grow">
+        {tasks ? (
+          <>
+            <div className="text-gray-800 font-semibold">
+              {tasks.city}
+            </div>
+            {tasks.items.map((item, index) => (
+              <div key={index} className="text-gray-800">
+                {item.name} - {item.quantity}
+              </div>
+            ))}
+          </>
+        ) : (
+          <div className="text-gray-400 flex-grow">
+            {blockedDays[formatDateISO(weekDates[index])] ? "Bloqué" : "Libre"}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+})}
+
                   </div>
-                  <div className="bg-gray-700 p-4 mt-2 shadow-lg rounded-lg h-40 flex items-center justify-center">
-                    <div>
-                      {getTotalItemsForDay(day).map((item, index) => (
-                        <div key={index} className="text-gray-200">
-                          <span className="font-semibold">{item.name} :</span>{" "}
-                          {item.quantity}
-                        </div>
-                      ))}
-                    </div>
+                </div>
+
+                <div
+                  className={`bg-gray-700 p-4 mt-2 shadow-lg rounded-lg h-40 flex items-center justify-center ${
+                    blockedDays[formatDateISO(weekDates[index])]
+                      ? "bg-gray-600"
+                      : ""
+                  }`}
+                >
+                  <div>
+                    {getTotalItemsForDay(day).map((item, index) => (
+                      <div
+                        key={index}
+                        className={`text-gray-200 ${
+                          blockedDays[formatDateISO(weekDates[index])]
+                            ? "text-gray-400"
+                            : ""
+                        }`}
+                      >
+                        <span className="font-semibold">{item.name} :</span>{" "}
+                        {item.quantity}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
