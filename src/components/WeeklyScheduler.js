@@ -66,6 +66,7 @@ const WeeklyScheduler = () => {
     }
   };
 
+  
   const toggleDayBlock = async () => {
     const formattedDate = formatDateISO(weekDates[selectedDay]);
     const isBlocked = blockedDays[formattedDate];
@@ -445,8 +446,10 @@ const WeeklyScheduler = () => {
   const formatWeekRange = (startDate) => {
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 4);
-    return `${formatDateISO(startDate)} au ${formatDateISO(endDate)}`;
+    return `${formatDateLong(startDate)} au ${formatDateLong(endDate)}`;
   };
+
+  
 
   return (
     <div className="bg-gray-900 text-white min-h-screen">
@@ -475,11 +478,7 @@ const WeeklyScheduler = () => {
             {days.map((day, index) => (
               <div
                 key={day}
-                className={`flex flex-col flex-grow border-r border-gray-500 last:border-r-0 ${
-                  blockedDays[formatDateISO(weekDates[index])]
-                    ? "bg-gray-600"
-                    : ""
-                }`}
+                className="flex flex-col flex-grow border-r border-gray-500 last:border-r-0"
               >
                 <h2
                   className={`text-lg font-bold p-2 text-center border-b border-gray-500 cursor-pointer ${
@@ -490,7 +489,7 @@ const WeeklyScheduler = () => {
                   onClick={() => handleDayClick(index)}
                 >
                   {`${day} ${
-                    weekDates[index] ? formatDateISO(weekDates[index]) : ""
+                    weekDates[index] ? formatDateLong(weekDates[index]) : ""
                   }`}
                 </h2>
 
@@ -559,21 +558,13 @@ const WeeklyScheduler = () => {
                 </div>
 
                 <div
-                  className={`bg-gray-700 p-4 mt-2 shadow-lg rounded-lg h-40 flex items-center justify-center ${
-                    blockedDays[formatDateISO(weekDates[index])]
-                      ? "bg-gray-600"
-                      : ""
-                  }`}
+                  className="bg-gray-700 p-4 mt-2 shadow-lg rounded-lg h-40 flex items-center justify-center"
                 >
                   <div>
                     {getTotalItemsForDay(day).map((item, index) => (
                       <div
                         key={index}
-                        className={`text-gray-200 ${
-                          blockedDays[formatDateISO(weekDates[index])]
-                            ? "text-gray-400"
-                            : ""
-                        }`}
+                        className="text-gray-200"
                       >
                         <span className="font-semibold">{item.name} :</span>{" "}
                         {item.quantity}
