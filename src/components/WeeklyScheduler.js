@@ -54,7 +54,7 @@ const WeeklyScheduler = () => {
       const blockedSlots = {};
       response.data.forEach((item) => {
         const date = formatDateISO(new Date(item.date));
-        blocked[date] = item.fullDay;
+        blocked[date] = item.dayBlocked;
         blockedSlots[date] = item.blockedTimes || [];
       });
       console.log("Blocked days fetched:", blocked);
@@ -69,7 +69,7 @@ const WeeklyScheduler = () => {
   const toggleDayBlock = async () => {
     const formattedDate = formatDateISO(weekDates[selectedDay]);
     const isBlocked = blockedDays[formattedDate];
-
+  
     try {
       if (isBlocked) {
         console.log(`Sending request to unblock date ${formattedDate}`);
@@ -77,6 +77,7 @@ const WeeklyScheduler = () => {
           `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates/${formattedDate}`,
           {
             headers: { "Content-Type": "application/json" },
+            data: {} // Ajoutez un objet vide pour spécifier le `Content-Type`
           }
         );
         console.log("Response from unblocking:", response.data);
@@ -100,6 +101,7 @@ const WeeklyScheduler = () => {
           {
             date: formattedDate,
             blockedTimes: slotsToBlock,
+            dayBlocked: true
           },
           {
             headers: { "Content-Type": "application/json" },
@@ -124,6 +126,7 @@ const WeeklyScheduler = () => {
       );
     }
   };
+  
 
   const toggleSlotBlock = async () => {
     if (
@@ -134,12 +137,12 @@ const WeeklyScheduler = () => {
       console.error("Selected slot or day index is not defined");
       return;
     }
-
+  
     const formattedDate = formatDateISO(weekDates[selectedSlot.dayIndex]);
     const slot = selectedSlot.slot;
     const isBlockedSlot =
       blockedSlots[formattedDate] && blockedSlots[formattedDate].includes(slot);
-
+  
     try {
       if (isBlockedSlot) {
         console.log(
@@ -153,7 +156,7 @@ const WeeklyScheduler = () => {
           }
         );
         console.log("Response from unblocking slot:", response.data);
-
+  
         setBlockedSlots((prevState) => {
           const updatedSlots = { ...prevState };
           if (updatedSlots[formattedDate]) {
@@ -181,7 +184,7 @@ const WeeklyScheduler = () => {
           }
         );
         console.log("Response from blocking slot:", response.data);
-
+  
         setBlockedSlots((prevState) => {
           const updatedSlots = { ...prevState };
           if (updatedSlots[formattedDate]) {
@@ -192,7 +195,7 @@ const WeeklyScheduler = () => {
           return updatedSlots;
         });
       }
-
+  
       fetchBlockedDays();
       setShowSlotModal(false);
     } catch (error) {
@@ -202,6 +205,7 @@ const WeeklyScheduler = () => {
       );
     }
   };
+  
 
   useEffect(() => {
     fetchBlockedDays(); // Assurez-vous que cette fonction est appelée au montage
