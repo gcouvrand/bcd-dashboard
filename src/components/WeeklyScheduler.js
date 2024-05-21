@@ -465,7 +465,7 @@ const WeeklyScheduler = () => {
 
   return (
     <div className="bg-gray-900 text-white min-h-screen">
-      <div className="container mx-auto px-4 py-6 flex space-x-4">
+      <div className="container mx-auto px-2 py-6 flex space-x-4">
         <div className="flex flex-col flex-grow">
           <div className="flex justify-between items-center mb-6">
             <Modal />
