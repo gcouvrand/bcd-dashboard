@@ -19,6 +19,13 @@ const formatDateISO = (date) => {
   return date ? date.toISOString().substring(0, 10) : undefined; // Produit "YYYY-MM-DD" si date est définie
 };
 
+const formatName = (name) => {
+  return name
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+};
+
 const roundToNearestHalfHour = (date) => {
   const minutes = date.getMinutes();
   const hours = date.getHours();
@@ -66,11 +73,10 @@ const WeeklyScheduler = () => {
     }
   };
 
-  
   const toggleDayBlock = async () => {
     const formattedDate = formatDateISO(weekDates[selectedDay]);
     const isBlocked = blockedDays[formattedDate];
-  
+
     try {
       if (isBlocked) {
         console.log(`Sending request to unblock date ${formattedDate}`);
@@ -78,7 +84,7 @@ const WeeklyScheduler = () => {
           `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates/${formattedDate}`,
           {
             headers: { "Content-Type": "application/json" },
-            data: {} // Ajoutez un objet vide pour spécifier le `Content-Type`
+            data: {}, // Ajoutez un objet vide pour spécifier le `Content-Type`
           }
         );
         console.log("Response from unblocking:", response.data);
@@ -102,7 +108,7 @@ const WeeklyScheduler = () => {
           {
             date: formattedDate,
             blockedTimes: slotsToBlock,
-            dayBlocked: true
+            dayBlocked: true,
           },
           {
             headers: { "Content-Type": "application/json" },
@@ -127,7 +133,6 @@ const WeeklyScheduler = () => {
       );
     }
   };
-  
 
   const toggleSlotBlock = async () => {
     if (
@@ -138,12 +143,12 @@ const WeeklyScheduler = () => {
       console.error("Selected slot or day index is not defined");
       return;
     }
-  
+
     const formattedDate = formatDateISO(weekDates[selectedSlot.dayIndex]);
     const slot = selectedSlot.slot;
     const isBlockedSlot =
       blockedSlots[formattedDate] && blockedSlots[formattedDate].includes(slot);
-  
+
     try {
       if (isBlockedSlot) {
         console.log(
@@ -157,7 +162,7 @@ const WeeklyScheduler = () => {
           }
         );
         console.log("Response from unblocking slot:", response.data);
-  
+
         setBlockedSlots((prevState) => {
           const updatedSlots = { ...prevState };
           if (updatedSlots[formattedDate]) {
@@ -185,7 +190,7 @@ const WeeklyScheduler = () => {
           }
         );
         console.log("Response from blocking slot:", response.data);
-  
+
         setBlockedSlots((prevState) => {
           const updatedSlots = { ...prevState };
           if (updatedSlots[formattedDate]) {
@@ -196,7 +201,7 @@ const WeeklyScheduler = () => {
           return updatedSlots;
         });
       }
-  
+
       fetchBlockedDays();
       setShowSlotModal(false);
     } catch (error) {
@@ -206,7 +211,6 @@ const WeeklyScheduler = () => {
       );
     }
   };
-  
 
   useEffect(() => {
     fetchBlockedDays(); // Assurez-vous que cette fonction est appelée au montage
@@ -326,8 +330,10 @@ const WeeklyScheduler = () => {
         const hourKey = roundToNearestHalfHour(orderDate);
         weeklyOrders[day] = weeklyOrders[day] || {};
         weeklyOrders[day][hourKey] = weeklyOrders[day][hourKey] || {
+          userName: order.userName,
           city: order.items[0].city,
           items: [],
+          status: order.status, // Ajouter le statut ici
         };
 
         order.items.forEach((item) => {
@@ -347,6 +353,14 @@ const WeeklyScheduler = () => {
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
+  };
+
+  const getCurrentTime = () => {
+    const now = new Date();
+    return {
+      hours: now.getHours(),
+      date: now.toISOString().substring(0, 10),
+    };
   };
 
   const handlePrevWeek = () => {
@@ -449,8 +463,6 @@ const WeeklyScheduler = () => {
     return `${formatDateLong(startDate)} au ${formatDateLong(endDate)}`;
   };
 
-  
-
   return (
     <div className="bg-gray-900 text-white min-h-screen">
       <div className="container mx-auto px-4 py-6 flex space-x-4">
@@ -518,35 +530,74 @@ const WeeklyScheduler = () => {
                         blockedSlots[formatDateISO(weekDates[index])].includes(
                           hourKey
                         );
+
+                      const currentDate = new Date();
+                      const formattedCurrentDate = formatDateISO(currentDate);
+                      const currentHour = currentDate.getHours();
+
+                      // Détermine la classe de style en fonction du statut
+                      let slotClassName = "";
+                      if (tasks) {
+                        if (tasks.status === "En cours") {
+                          slotClassName = "bg-red-500"; // Rouge vif pour "En cours"
+                        } else if (tasks.status.startsWith("FA")) {
+                          slotClassName = "bg-gray-400"; // Gris clair pour "FA..."
+                        } else {
+                          slotClassName = "bg-red-200"; // Rouge clair pour les autres tâches
+                        }
+                      } else if (isBlockedSlot) {
+                        slotClassName = "bg-gray-600 text-gray-400"; // Créneaux bloqués
+                      } else {
+                        const slotDate = formatDateISO(weekDates[index]);
+                        if (
+                          slotDate < formattedCurrentDate ||
+                          (slotDate === formattedCurrentDate &&
+                            hour <= currentHour)
+                        ) {
+                          slotClassName = "bg-gray-400"; // Gris clair pour les créneaux libres après 16h ou jours passés
+                        } else {
+                          slotClassName = "bg-green-200"; // Créneaux libres
+                        }
+                      }
+
+                      const isClickable = !tasks || isBlockedSlot;
+                      const handleClick = isClickable
+                        ? () => handleSlotClick(index, hourKey)
+                        : null;
+
                       return (
                         <div
                           key={i}
-                          className={`flex items-start p-2 text-xs flex-grow ${
-                            tasks
-                              ? "bg-red-200"
-                              : isBlockedSlot
-                              ? "bg-gray-600 text-gray-400"
-                              : "bg-green-200"
-                          } hover:bg-opacity-75 cursor-pointer transition duration-200 ease-in-out`}
-                          onClick={() => handleSlotClick(index, hourKey)}
+                          className={`flex items-start p-2 text-xs flex-grow ${slotClassName} hover:bg-opacity-75 transition duration-200 ease-in-out ${
+                            isClickable ? "cursor-pointer" : "cursor-default"
+                          }`}
+                          onClick={handleClick}
                         >
                           <div className="w-16 font-semibold text-gray-900">
                             {hourKey}
                           </div>
-                          <div className="flex flex-col flex-grow">
+                          <div className="flex flex-col flex-grow -ml-6 -mt-1">
                             {tasks ? (
                               <>
-                                <div className="text-gray-800 font-semibold">
+                                <div className="text-black font-bold text-lg mb-1">
+                                  {formatName(tasks.userName)}
+                                </div>
+                                <div className="text-gray-700 font-medium text-base mb-1">
                                   {tasks.city}
                                 </div>
-                                {tasks.items.map((item, index) => (
-                                  <div key={index} className="text-gray-800">
-                                    {item.name} - {item.quantity}
-                                  </div>
-                                ))}
+                                <div className="border-t border-gray-600 mt-1 pt-1">
+                                  {tasks.items.map((item, index) => (
+                                    <div
+                                      key={index}
+                                      className="text-gray-800 text-sm italic"
+                                    >
+                                      {item.name} - {item.quantity}
+                                    </div>
+                                  ))}
+                                </div>
                               </>
                             ) : (
-                              <div className="text-gray-400 flex-grow">
+                              <div className="text-gray-400 flex-grow text-sm mt-0.5">
                                 {isBlockedSlot ? "Bloqué" : "Libre"}
                               </div>
                             )}
@@ -557,15 +608,10 @@ const WeeklyScheduler = () => {
                   </div>
                 </div>
 
-                <div
-                  className="bg-gray-700 p-4 mt-2 shadow-lg rounded-lg h-40 flex items-center justify-center"
-                >
+                <div className="bg-gray-700 p-4 mt-2 shadow-lg rounded-lg h-40 flex items-center justify-center">
                   <div>
                     {getTotalItemsForDay(day).map((item, index) => (
-                      <div
-                        key={index}
-                        className="text-gray-200"
-                      >
+                      <div key={index} className="text-gray-200">
                         <span className="font-semibold">{item.name} :</span>{" "}
                         {item.quantity}
                       </div>
