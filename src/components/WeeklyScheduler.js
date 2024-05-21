@@ -19,10 +19,6 @@ const formatDateISO = (date) => {
   return date ? date.toISOString().substring(0, 10) : undefined; // Produit "YYYY-MM-DD" si date est définie
 };
 
-// Utiliser formatDateISO partout où une date est formatée
-
-// Modifier également la fonction initiale `formatDate` pour qu'elle utilise le nouveau format si nécessaire
-
 const roundToNearestHalfHour = (date) => {
   const minutes = date.getMinutes();
   const hours = date.getHours();
@@ -43,8 +39,11 @@ const WeeklyScheduler = () => {
   const [weeklyItems, setWeeklyItems] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
+  const [showSlotModal, setShowSlotModal] = useState(false);
   const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [blockedDays, setBlockedDays] = useState({});
+  const [blockedSlots, setBlockedSlots] = useState({});
 
   const fetchBlockedDays = async () => {
     try {
@@ -52,11 +51,16 @@ const WeeklyScheduler = () => {
         "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates"
       );
       const blocked = {};
+      const blockedSlots = {};
       response.data.forEach((item) => {
-        blocked[formatDateISO(new Date(item.date))] = item.fullDay;
+        const date = formatDateISO(new Date(item.date));
+        blocked[date] = item.fullDay;
+        blockedSlots[date] = item.blockedTimes || [];
       });
       console.log("Blocked days fetched:", blocked);
+      console.log("Blocked slots fetched:", blockedSlots);
       setBlockedDays(blocked);
+      setBlockedSlots(blockedSlots);
     } catch (error) {
       console.error("Error fetching blocked days:", error);
     }
@@ -72,21 +76,44 @@ const WeeklyScheduler = () => {
         const response = await axios.delete(
           `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates/${formattedDate}`,
           {
-            data: { times: ["10:00", "11:00"] }, // Exemple de créneaux à débloquer
+            headers: { "Content-Type": "application/json" },
           }
         );
         console.log("Response from unblocking:", response.data);
+        setBlockedDays((prev) => {
+          const updated = { ...prev };
+          delete updated[formattedDate];
+          return updated;
+        });
+        setBlockedSlots((prev) => {
+          const updated = { ...prev };
+          delete updated[formattedDate];
+          return updated;
+        });
       } else {
+        const slotsToBlock = hours.map(
+          (hour) => `${Math.floor(hour)}:${hour % 1 === 0 ? "00" : "30"}`
+        );
         console.log(`Sending request to block date ${formattedDate}`);
         const response = await axios.post(
           "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates",
           {
             date: formattedDate,
-            fullDay: true,
-            blockedTimes: [],
+            blockedTimes: slotsToBlock,
+          },
+          {
+            headers: { "Content-Type": "application/json" },
           }
         );
         console.log("Response from blocking:", response.data);
+        setBlockedDays((prev) => ({
+          ...prev,
+          [formattedDate]: true,
+        }));
+        setBlockedSlots((prev) => ({
+          ...prev,
+          [formattedDate]: slotsToBlock,
+        }));
       }
       fetchBlockedDays();
       setShowModal(false);
@@ -98,19 +125,102 @@ const WeeklyScheduler = () => {
     }
   };
 
+  const toggleSlotBlock = async () => {
+    if (
+      !selectedSlot ||
+      selectedSlot.dayIndex === undefined ||
+      !selectedSlot.slot
+    ) {
+      console.error("Selected slot or day index is not defined");
+      return;
+    }
+
+    const formattedDate = formatDateISO(weekDates[selectedSlot.dayIndex]);
+    const slot = selectedSlot.slot;
+    const isBlockedSlot =
+      blockedSlots[formattedDate] && blockedSlots[formattedDate].includes(slot);
+
+    try {
+      if (isBlockedSlot) {
+        console.log(
+          `Sending request to unblock slot ${slot} on date ${formattedDate}`
+        );
+        const response = await axios.delete(
+          `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates/${formattedDate}`,
+          {
+            headers: { "Content-Type": "application/json" },
+            data: { times: [slot] },
+          }
+        );
+        console.log("Response from unblocking slot:", response.data);
+
+        setBlockedSlots((prevState) => {
+          const updatedSlots = { ...prevState };
+          if (updatedSlots[formattedDate]) {
+            updatedSlots[formattedDate] = updatedSlots[formattedDate].filter(
+              (time) => time !== slot
+            );
+            if (updatedSlots[formattedDate].length === 0) {
+              delete updatedSlots[formattedDate];
+            }
+          }
+          return updatedSlots;
+        });
+      } else {
+        console.log(
+          `Sending request to block slot ${slot} on date ${formattedDate}`
+        );
+        const response = await axios.post(
+          "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates",
+          {
+            date: formattedDate,
+            blockedTimes: [slot],
+          },
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        console.log("Response from blocking slot:", response.data);
+
+        setBlockedSlots((prevState) => {
+          const updatedSlots = { ...prevState };
+          if (updatedSlots[formattedDate]) {
+            updatedSlots[formattedDate].push(slot);
+          } else {
+            updatedSlots[formattedDate] = [slot];
+          }
+          return updatedSlots;
+        });
+      }
+
+      fetchBlockedDays();
+      setShowSlotModal(false);
+    } catch (error) {
+      console.error(
+        "Error toggling slot block:",
+        error.response ? error.response.data : error.message
+      );
+    }
+  };
+
   useEffect(() => {
     fetchBlockedDays(); // Assurez-vous que cette fonction est appelée au montage
   }, []);
 
-  console.log(
-    "Formatted week dates:",
-    weekDates.map((date) => formatDateISO(date))
-  );
-  console.log("Blocked days from state:", blockedDays);
-
   const handleDayClick = (index) => {
     setSelectedDay(index);
     setShowModal(true);
+  };
+
+  const handleSlotClick = (dayIndex, slot) => {
+    setSelectedSlot({ dayIndex, slot });
+    setShowSlotModal(true);
+  };
+
+  // Ajoutez cette fonction pour formater la date selon le format "28 mai 2024"
+  const formatDateLong = (date) => {
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(date).toLocaleDateString("fr-FR", options);
   };
 
   const Modal = () => {
@@ -119,23 +229,60 @@ const WeeklyScheduler = () => {
     const date = weekDates[selectedDay];
     const formattedDate = formatDateISO(date);
     const isBlocked = blockedDays[formattedDate];
+    const formattedDateLong = formatDateLong(date);
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-        <div className="bg-gray-800 p-6 rounded-lg shadow-xl text-white w-full max-w-md">
-          <h4 className="text-lg font-semibold mb-4">
-            {isBlocked ? "Débloquer" : "Bloquer"} le {formattedDate} ?
+        <div className="bg-gray-900 p-6 rounded-lg shadow-xl text-white w-full max-w-md">
+          <h4 className="text-xl font-semibold mb-6 text-center">
+            {isBlocked ? "Débloquer" : "Bloquer"} le {formattedDateLong} ?
           </h4>
-          <div className="flex justify-around">
+          <div className="flex justify-between">
             <button
               onClick={toggleDayBlock}
-              className="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out flex-grow"
             >
               Oui
             </button>
             <button
               onClick={() => setShowModal(false)}
-              className="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out"
+              className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out flex-grow ml-4"
+            >
+              Non
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const SlotModal = () => {
+    if (!showSlotModal) return null;
+
+    const date = weekDates[selectedSlot.dayIndex];
+    const formattedDate = formatDateISO(date);
+    const slot = selectedSlot.slot;
+    const isBlockedSlot =
+      blockedSlots[formattedDate] && blockedSlots[formattedDate].includes(slot);
+    const formattedDateLong = formatDateLong(date);
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div className="bg-gray-900 p-6 rounded-lg shadow-xl text-white w-full max-w-md">
+          <h4 className="text-xl font-semibold mb-6 text-center">
+            {isBlockedSlot ? "Débloquer" : "Bloquer"} le créneau de {slot} le{" "}
+            {formattedDateLong} ?
+          </h4>
+          <div className="flex justify-between">
+            <button
+              onClick={toggleSlotBlock}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out flex-grow"
+            >
+              Oui
+            </button>
+            <button
+              onClick={() => setShowSlotModal(false)}
+              className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out flex-grow ml-4"
             >
               Non
             </button>
@@ -302,7 +449,8 @@ const WeeklyScheduler = () => {
       <div className="container mx-auto px-4 py-6 flex space-x-4">
         <div className="flex flex-col flex-grow">
           <div className="flex justify-between items-center mb-6">
-            <Modal></Modal>
+            <Modal />
+            <SlotModal />
             <button
               onClick={handlePrevWeek}
               className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500 transition duration-200"
@@ -328,7 +476,6 @@ const WeeklyScheduler = () => {
                     ? "bg-gray-600"
                     : ""
                 }`}
-                onClick={() => handleDayClick(index)}
               >
                 <h2
                   className={`text-lg font-bold p-2 text-center border-b border-gray-500 cursor-pointer ${
@@ -336,6 +483,7 @@ const WeeklyScheduler = () => {
                       ? "bg-gray-700 text-gray-400"
                       : "bg-gray-700 text-white"
                   }`}
+                  onClick={() => handleDayClick(index)}
                 >
                   {`${day} ${
                     weekDates[index] ? formatDateISO(weekDates[index]) : ""
@@ -357,41 +505,52 @@ const WeeklyScheduler = () => {
                     }`}
                     style={{ minHeight: "90vh" }}
                   >
-{hours.map((hour, i) => {
-  const hourKey = `${Math.floor(hour)}:${hour % 1 === 0 ? "00" : "30"}`;
-  const tasks = orders[day] && orders[day][hourKey];
-  return (
-    <div
-      key={i}
-      className={`flex items-start p-2 text-xs flex-grow ${
-        tasks ? "bg-red-200" : (blockedDays[formatDateISO(weekDates[index])] ? "bg-gray-600 text-gray-400" : "bg-green-200")
-      } hover:bg-opacity-75 cursor-pointer transition duration-200 ease-in-out`}
-    >
-      <div className="w-16 font-semibold text-gray-900">
-        {hourKey}
-      </div>
-      <div className="flex flex-col flex-grow">
-        {tasks ? (
-          <>
-            <div className="text-gray-800 font-semibold">
-              {tasks.city}
-            </div>
-            {tasks.items.map((item, index) => (
-              <div key={index} className="text-gray-800">
-                {item.name} - {item.quantity}
-              </div>
-            ))}
-          </>
-        ) : (
-          <div className="text-gray-400 flex-grow">
-            {blockedDays[formatDateISO(weekDates[index])] ? "Bloqué" : "Libre"}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-})}
-
+                    {hours.map((hour, i) => {
+                      const hourKey = `${Math.floor(hour)}:${
+                        hour % 1 === 0 ? "00" : "30"
+                      }`;
+                      const tasks = orders[day] && orders[day][hourKey];
+                      const isBlockedSlot =
+                        blockedSlots[formatDateISO(weekDates[index])] &&
+                        blockedSlots[formatDateISO(weekDates[index])].includes(
+                          hourKey
+                        );
+                      return (
+                        <div
+                          key={i}
+                          className={`flex items-start p-2 text-xs flex-grow ${
+                            tasks
+                              ? "bg-red-200"
+                              : isBlockedSlot
+                              ? "bg-gray-600 text-gray-400"
+                              : "bg-green-200"
+                          } hover:bg-opacity-75 cursor-pointer transition duration-200 ease-in-out`}
+                          onClick={() => handleSlotClick(index, hourKey)}
+                        >
+                          <div className="w-16 font-semibold text-gray-900">
+                            {hourKey}
+                          </div>
+                          <div className="flex flex-col flex-grow">
+                            {tasks ? (
+                              <>
+                                <div className="text-gray-800 font-semibold">
+                                  {tasks.city}
+                                </div>
+                                {tasks.items.map((item, index) => (
+                                  <div key={index} className="text-gray-800">
+                                    {item.name} - {item.quantity}
+                                  </div>
+                                ))}
+                              </>
+                            ) : (
+                              <div className="text-gray-400 flex-grow">
+                                {isBlockedSlot ? "Bloqué" : "Libre"}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
