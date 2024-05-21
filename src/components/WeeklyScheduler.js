@@ -538,8 +538,8 @@ const WeeklyScheduler = () => {
                       // Détermine la classe de style en fonction du statut
                       let slotClassName = "";
                       if (tasks) {
-                        if (tasks.status === "En cours") {
-                          slotClassName = "bg-red-500"; // Rouge vif pour "En cours"
+                        if (tasks.status === "EN COURS") {
+                          slotClassName = "bg-red-400"; // Rouge vif pour "En cours"
                         } else if (tasks.status.startsWith("FA")) {
                           slotClassName = "bg-gray-400"; // Gris clair pour "FA..."
                         } else {
