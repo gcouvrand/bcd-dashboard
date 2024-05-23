@@ -108,9 +108,9 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
             });
             return;
         }
-
+    
         const utcDate = parseDateTime(editedOrder.date, editedOrder.time);
-
+    
         const formattedOrder = {
             ...editedOrder,
             deliverySlot: {
@@ -121,7 +121,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
             discount: parseFloat(editedOrder.discount) || 0,
             cartTotal: calculateTotal(editedOrder.cartItems, editedOrder.deliveryFee, editedOrder.discount)
         };
-
+    
         try {
             const response = await axios.put(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/orders/${order._id}`, formattedOrder);
             if (response.status === 200) {
@@ -135,7 +135,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                     className: 'bg-green-600 text-white',
                     progressClassName: 'bg-green-300'
                 });
-                onSave();
+                onSave(formattedOrder);
             } else {
                 toast.error("Une erreur est survenue lors de la mise à jour de la commande.", {
                     position: "top-right",
@@ -162,7 +162,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
             console.error("Error updating order:", error);
         }
     };
-
+    
     if (!order) return null;
 
     return (

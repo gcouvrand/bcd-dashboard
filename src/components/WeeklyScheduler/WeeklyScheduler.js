@@ -19,17 +19,11 @@ const WeeklyScheduler = () => {
     const [blockedDays, setBlockedDays] = useState({});
     const [blockedSlots, setBlockedSlots] = useState({});
     const [editOrder, setEditOrder] = useState(null);
-
+    
     const closeModal = useCallback(() => {
         setShowSlotModal(false);
         setShowModal(false);
     }, []);
-
-    // Cette variable n'est pas utilisée
-    // const openEditOrderModal = useCallback((order) => {
-    //     setEditOrder(order);
-    //     setShowModal(true);
-    // }, []);
 
     useEffect(() => {
         fetchBlockedDays().then(({ blocked, blockedSlots }) => {
@@ -54,7 +48,24 @@ const WeeklyScheduler = () => {
     }, []);
 
     const handleSaveOrder = useCallback((updatedOrder) => {
-        console.log("Sauvegarder la commande mise à jour:", updatedOrder);
+        if (!updatedOrder || !updatedOrder.deliverySlot || !updatedOrder.deliverySlot.date) {
+            console.error("Updated order or its deliverySlot is undefined.");
+            return;
+        }
+    
+        setOrders(prevOrders => {
+            const updatedOrders = { ...prevOrders };
+            const orderDate = new Date(updatedOrder.deliverySlot.date);
+            const day = days[orderDate.getUTCDay() - 1];
+            const hourKey = roundToNearestHalfHour(orderDate);
+    
+            if (!updatedOrders[day]) {
+                updatedOrders[day] = {};
+            }
+            updatedOrders[day][hourKey] = updatedOrder;
+    
+            return updatedOrders;
+        });
         setEditOrder(null);
         closeModal();
     }, [closeModal]);
@@ -67,7 +78,7 @@ const WeeklyScheduler = () => {
         if (dates.length > 0) {
             loadOrders(dates[0]);
         }
-    }, [weekStartDate]);
+    }, [weekStartDate, orders]);
 
     const loadOrders = async (startDate) => {
         const formattedDate = startDate.toISOString().substring(0, 10);
@@ -78,17 +89,26 @@ const WeeklyScheduler = () => {
             const weeklyOrders = {};
             let totalRevenue = 0;
             let totalItems = {};
-
+    
             response.data.forEach((order) => {
                 const orderDate = new Date(order.date);
                 const day = days[orderDate.getUTCDay() - 1];
                 const hourKey = roundToNearestHalfHour(orderDate);
-                weeklyOrders[day] = weeklyOrders[day] || {};
-                weeklyOrders[day][hourKey] = weeklyOrders[day][hourKey] || {
+                
+                // Assure que weeklyOrders[day] est initialisé
+                if (!weeklyOrders[day]) {
+                    weeklyOrders[day] = {};
+                }
+    
+                // Vérifie si order.items existe et n'est pas vide pour éviter l'accès non défini
+                const city = (order.items && order.items[0] && order.items[0].city) || '';
+                const cartItems = order.items || [];
+    
+                weeklyOrders[day][hourKey] = {
                     _id: order.id,
                     userName: order.userName,
-                    city: order.items[0].city,
-                    cartItems: order.items,
+                    city: city,
+                    cartItems: cartItems,
                     status: order.status,
                     userInfo: order.userInfo,
                     deliveryFee: order.deliveryFee,
@@ -96,14 +116,14 @@ const WeeklyScheduler = () => {
                     discount: order.discount,
                     date: order.date
                 };
-
+    
                 order.items.forEach((item) => {
                     totalItems[item.name] = (totalItems[item.name] || 0) + item.quantity;
                 });
-
+    
                 totalRevenue += order.cartTotal;
             });
-
+    
             setOrders(weeklyOrders);
             setWeeklyTotal(totalRevenue);
             setWeeklyItems(totalItems);
