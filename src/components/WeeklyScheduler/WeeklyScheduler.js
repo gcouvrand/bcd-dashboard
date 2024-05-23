@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import "tailwindcss/tailwind.css";
 import EditOrderModal from "../EditOrderModal/EditOrderModal";
@@ -20,15 +20,16 @@ const WeeklyScheduler = () => {
     const [blockedSlots, setBlockedSlots] = useState({});
     const [editOrder, setEditOrder] = useState(null);
 
-    const closeModal = () => {
+    const closeModal = useCallback(() => {
         setShowSlotModal(false);
         setShowModal(false);
-    };
+    }, []);
 
-    const openEditOrderModal = (order) => {
-        setEditOrder(order);
-        setShowModal(true);
-    };
+    // Cette variable n'est pas utilisée
+    // const openEditOrderModal = useCallback((order) => {
+    //     setEditOrder(order);
+    //     setShowModal(true);
+    // }, []);
 
     useEffect(() => {
         fetchBlockedDays().then(({ blocked, blockedSlots }) => {
@@ -37,26 +38,26 @@ const WeeklyScheduler = () => {
         });
     }, []);
 
-    const handleDayClick = (index) => {
+    const handleDayClick = useCallback((index) => {
         setSelectedDay(index);
         setShowModal(true);
-    };
+    }, []);
 
-    const handleSlotClick = (dayIndex, slot) => {
+    const handleSlotClick = useCallback((dayIndex, slot) => {
         setSelectedSlot({ dayIndex, slot });
         setShowSlotModal(true);
-    };
+    }, []);
 
-    const handleEditOrder = (order) => {
+    const handleEditOrder = useCallback((order) => {
         setEditOrder(order);
         setShowModal(true);
-    };
+    }, []);
 
-    const handleSaveOrder = (updatedOrder) => {
+    const handleSaveOrder = useCallback((updatedOrder) => {
         console.log("Sauvegarder la commande mise à jour:", updatedOrder);
         setEditOrder(null);
         closeModal();
-    };
+    }, [closeModal]);
 
     useEffect(() => {
         const monday = new Date(weekStartDate);
@@ -123,25 +124,16 @@ const WeeklyScheduler = () => {
         );
     };
 
-    const itemsOrder = [
+    const itemsOrder = useMemo(() => [
         "Stère en 50 cm",
         "Stère en 33 cm",
         "Stère en 25 cm",
         "Stère de galettes",
         "Filet de bois d'allumage",
         "Filet de bûchettes",
-    ];
+    ], []);
 
-    const getTotalItemsForDay = (day) => {
-        const itemsOrder = [
-            "Stère en 50 cm",
-            "Stère en 33 cm",
-            "Stère en 25 cm",
-            "Stère de galettes",
-            "Filet de bois d'allumage",
-            "Filet de bûchettes",
-        ];
-
+    const getTotalItemsForDay = useCallback((day) => {
         const totals = Object.entries(orders[day] || {}).reduce(
             (totals, [_, slot]) => {
                 slot.cartItems.forEach((item) => {
@@ -160,9 +152,23 @@ const WeeklyScheduler = () => {
                     .filter(([name]) => !itemsOrder.includes(name))
                     .map(([name, quantity]) => ({ name, quantity }))
             );
-    };
+    }, [orders, itemsOrder]);
 
-    const getTotalItems = (type) => {
+    const getSteresTotal = useCallback(() => {
+        const steresItems = Object.entries(weeklyItems).filter(([name]) =>
+            name.includes("Stère")
+        );
+        const steresTotal = steresItems.reduce(
+            (total, [, quantity]) => total + quantity,
+            0
+        );
+
+        return { steresTotal, steresItems };
+    }, [weeklyItems]);
+
+    const { steresTotal, steresItems } = getSteresTotal();
+
+    const getTotalItems = useCallback((type) => {
         let totals;
         if (type === "weeklySteres") {
             totals = steresItems.reduce((totals, [name, quantity]) => {
@@ -189,21 +195,7 @@ const WeeklyScheduler = () => {
                     .filter(([name]) => !itemsOrder.includes(name))
                     .map(([name, quantity]) => ({ name, quantity }))
             );
-    };
-
-    const getSteresTotal = () => {
-        const steresItems = Object.entries(weeklyItems).filter(([name]) =>
-            name.includes("Stère")
-        );
-        const steresTotal = steresItems.reduce(
-            (total, [, quantity]) => total + quantity,
-            0
-        );
-
-        return { steresTotal, steresItems };
-    };
-
-    const { steresTotal, steresItems } = getSteresTotal();
+    }, [steresItems, weeklyItems, itemsOrder]);
 
     const formatWeekRange = (startDate) => {
         const endDate = new Date(startDate);
@@ -217,7 +209,7 @@ const WeeklyScheduler = () => {
     
         try {
             if (isBlocked) {
-                const response = await axios.delete(
+                await axios.delete(
                     `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates/${formattedDate}`,
                     {
                         headers: { "Content-Type": "application/json" },
@@ -243,7 +235,7 @@ const WeeklyScheduler = () => {
                             !orders[days[selectedDay]][slot]
                     );
     
-                const response = await axios.post(
+                await axios.post(
                     "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates",
                     {
                         date: formattedDate,
@@ -290,7 +282,7 @@ const WeeklyScheduler = () => {
     
         try {
             if (isBlockedSlot) {
-                const response = await axios.delete(
+                await axios.delete(
                     `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates/${formattedDate}`,
                     {
                         headers: { "Content-Type": "application/json" },
@@ -311,7 +303,7 @@ const WeeklyScheduler = () => {
                     return updatedSlots;
                 });
             } else {
-                const response = await axios.post(
+                await axios.post(
                     "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates",
                     {
                         date: formattedDate,

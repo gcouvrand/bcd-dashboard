@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { formatDateISO, formatDateLong, days } from './utils';
 
-const SlotModal = ({ showSlotModal, selectedSlot, weekDates, toggleSlotBlock, blockedSlots, orders, setShowSlotModal, handleEditOrder }) => {
+const SlotModal = memo(({ showSlotModal, selectedSlot, weekDates, toggleSlotBlock, blockedSlots, orders, setShowSlotModal, handleEditOrder }) => {
     if (!showSlotModal) return null;
 
     const date = weekDates[selectedSlot.dayIndex];
@@ -72,6 +72,6 @@ const SlotModal = ({ showSlotModal, selectedSlot, weekDates, toggleSlotBlock, bl
             </div>
         </div>
     );
-};
+});
 
 export default SlotModal;

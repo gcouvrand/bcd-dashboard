@@ -1,7 +1,7 @@
-import React from 'react';
-import { formatDateISO, formatDateLong, days } from './utils';
+import React, { memo } from 'react';
+import { formatDateISO, formatDateLong } from './utils';
 
-const Modal = ({ showModal, selectedDay, weekDates, toggleDayBlock, blockedDays, setShowModal }) => {
+const Modal = memo(({ showModal, selectedDay, weekDates, toggleDayBlock, blockedDays, setShowModal }) => {
     if (!showModal) return null;
 
     const date = weekDates[selectedDay];
@@ -32,6 +32,6 @@ const Modal = ({ showModal, selectedDay, weekDates, toggleDayBlock, blockedDays,
             </div>
         </div>
     );
-};
+});
 
 export default Modal;
