@@ -78,7 +78,7 @@ const WeeklyScheduler = () => {
         if (dates.length > 0) {
             loadOrders(dates[0]);
         }
-    }, [weekStartDate, orders]);
+    }, [weekStartDate]);
 
     const loadOrders = async (startDate) => {
         const formattedDate = startDate.toISOString().substring(0, 10);
