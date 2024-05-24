@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef } from "react";
 import ProductListModal from "./ProductListModal";
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import { format, parseISO, isValid, getDay } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import {
     formatDateForInput,
     formatTimeForInput,
@@ -9,6 +13,9 @@ import {
     calculateTotal,
     generateTimeSlots
 } from './utils';
+
+// Enregistrer la localisation française
+registerLocale('fr', fr);
 
 const EditOrderModal = ({ order, onClose, onSave }) => {
     const [editedOrder, setEditedOrder] = useState({
@@ -32,8 +39,9 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
 
     useEffect(() => {
         if (order) {
+            const formattedDate = order.date ? parseISO(order.date) : null;
             setEditedOrder({
-                date: formatDateForInput(order.date),
+                date: formattedDate,
                 time: formatTimeForInput(order.date),
                 deliveryFee: order.deliveryFee !== undefined ? order.deliveryFee : '',
                 discount: order.discount !== undefined ? order.discount : '',
@@ -86,8 +94,8 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
         setIsProductListModalOpen(false);
     };
 
-    const handleDateChange = (e) => {
-        setEditedOrder({ ...editedOrder, date: e.target.value });
+    const handleDateChange = (date) => {
+        setEditedOrder({ ...editedOrder, date });
     };
 
     const handleTimeChange = (e) => {
@@ -109,7 +117,39 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
             return;
         }
 
-        const utcDate = parseDateTime(editedOrder.date, editedOrder.time);
+        const isValidDate = isValid(editedOrder.date);
+        const isValidTime = editedOrder.time && editedOrder.time.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+
+        if (!isValidDate || !isValidTime) {
+            toast.error("Date ou heure invalide.", {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                className: 'bg-red-600 text-white',
+                progressClassName: 'bg-red-300'
+            });
+            return;
+        }
+
+        const combinedDateTimeString = `${format(editedOrder.date, 'yyyy-MM-dd')}T${editedOrder.time}:00`;
+        const utcDate = new Date(combinedDateTimeString);
+
+        if (!isValid(utcDate)) {
+            toast.error("Erreur lors de la conversion de la date et de l'heure.", {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                className: 'bg-red-600 text-white',
+                progressClassName: 'bg-red-300'
+            });
+            return;
+        }
 
         const formattedOrder = {
             ...editedOrder,
@@ -163,6 +203,17 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
             console.error("Error updating order:", error);
         }
     };
+
+    const CustomInput = forwardRef(({ value, onClick }, ref) => (
+        <input 
+            type="text" 
+            value={value} 
+            onClick={onClick} 
+            ref={ref} 
+            className="w-full p-2 bg-gray-800 text-white rounded"
+            readOnly
+        />
+    ));
 
     if (!order) return null;
 
@@ -238,11 +289,16 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-300">Date de livraison</label>
-                            <input
-                                type="text"
-                                value={editedOrder.date}
+                            <DatePicker
+                                selected={editedOrder.date}
                                 onChange={handleDateChange}
+                                dateFormat="dd/MM/yyyy"
                                 className="w-full p-2 bg-gray-800 text-white rounded"
+                                popperClassName="react-datepicker-popper"
+                                calendarClassName="react-datepicker"
+                                locale="fr"
+                                filterDate={date => getDay(date) !== 0 && getDay(date) !== 6}
+                                customInput={<CustomInput />}
                             />
                         </div>
                         <div>
