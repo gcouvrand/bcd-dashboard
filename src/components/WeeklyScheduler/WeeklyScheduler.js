@@ -14,6 +14,7 @@ import {
   fetchBlockedDays,
   formatDateLong,
 } from "./utils";
+import { FaSync } from "react-icons/fa";
 
 const WeeklyScheduler = () => {
   const [weekStartDate, setWeekStartDate] = useState(new Date());
@@ -29,6 +30,7 @@ const WeeklyScheduler = () => {
   const [blockedSlots, setBlockedSlots] = useState({});
   const [editOrder, setEditOrder] = useState(null);
   const [reloadOrders, setReloadOrders] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const closeModal = useCallback(() => {
     setShowSlotModal(false);
@@ -56,6 +58,14 @@ const WeeklyScheduler = () => {
     setEditOrder(order);
     setShowModal(true);
   }, []);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setReloadOrders((prev) => !prev);
+      setIsRefreshing(false);
+    }, 1000); // Simule un délai de rafraîchissement
+  };
 
   const handleSaveOrder = useCallback(
     (updatedOrder) => {
@@ -433,6 +443,18 @@ const WeeklyScheduler = () => {
               className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500 transition duration-200"
             >
               Semaine Suivante
+            </button>
+          </div>
+          <div>
+            <button
+              onClick={handleRefresh}
+              className="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-500 transition duration-200 flex items-center -mb-5"
+              disabled={isRefreshing}
+            >
+              <FaSync
+                className={`mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+              />{" "}
+              Rafraîchir
             </button>
           </div>
           <div className="flex w-full max-w-7xl mx-auto mt-10">
