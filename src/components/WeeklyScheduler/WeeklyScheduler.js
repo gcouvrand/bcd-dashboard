@@ -474,6 +474,7 @@ const WeeklyScheduler = () => {
               <div
                 key={day}
                 className="flex flex-col flex-grow border-r border-gray-500 last:border-r-0"
+                style={{ width: "14.28%" }}
               >
                 <h2
                   className={`text-lg font-bold p-2 text-center border-b border-gray-500 cursor-pointer ${
@@ -597,10 +598,10 @@ const WeeklyScheduler = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-700 p-4 mt-2 shadow-lg rounded-lg h-40 flex flex-col items-center">
+                <div className="bg-gray-700 p-4 mt-2 shadow-lg rounded-lg h-40 flex flex-col items-start">
                   <div className="space-y-1">
                     {getTotalItemsForDay(day).map((item, index) => (
-                      <div key={index} className="text-gray-200 text-center">
+                      <div key={index} className="text-gray-200">
                         <span className="font-semibold">{item.name} :</span>{" "}
                         {item.quantity}
                       </div>
