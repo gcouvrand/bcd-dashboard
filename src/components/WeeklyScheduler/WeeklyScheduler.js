@@ -213,6 +213,18 @@ const WeeklyScheduler = () => {
     [orders, itemsOrder]
   );
 
+  const getDailyRevenue = useCallback(
+    (day) => {
+      return Object.entries(orders[day] || {}).reduce((total, [_, slots]) => {
+        slots.forEach((slot) => {
+          total += slot.cartTotal;
+        });
+        return total;
+      }, 0);
+    },
+    [orders]
+  );
+
   const getSteresTotal = useCallback(() => {
     const steresItems = Object.entries(weeklyItems).filter(([name]) =>
       name.includes("Stère")
@@ -585,14 +597,23 @@ const WeeklyScheduler = () => {
                   </div>
                 </div>
 
-                <div className="bg-gray-700 p-4 mt-2 shadow-lg rounded-lg h-40 flex items-center justify-center">
-                  <div>
+                <div className="bg-gray-700 p-4 mt-2 shadow-lg rounded-lg h-40 flex flex-col items-center">
+                  <div className="space-y-1">
                     {getTotalItemsForDay(day).map((item, index) => (
-                      <div key={index} className="text-gray-200">
+                      <div key={index} className="text-gray-200 text-center">
                         <span className="font-semibold">{item.name} :</span>{" "}
                         {item.quantity}
                       </div>
                     ))}
+                  </div>
+                </div>
+                <div className="bg-gray-800 p-4 mt-2 shadow-lg rounded-lg flex flex-col items-center">
+                  <div className="text-red-400 font-semibold">Chiffre d'affaires</div>
+                  <div className="text-green-400 font-bold text-lg">
+                    {getDailyRevenue(day).toLocaleString("fr-FR", {
+                      style: "currency",
+                      currency: "EUR",
+                    })}
                   </div>
                 </div>
               </div>
