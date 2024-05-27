@@ -33,8 +33,10 @@ const WeeklyScheduler = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const closeModal = useCallback(() => {
-    setShowSlotModal(false);
-    setShowModal(false);
+    setShowModal(false); // Ferme la modal de jour
+    setShowSlotModal(false); // Ferme la modal de créneau
+    setSelectedDay(null); // Réinitialise le jour sélectionné
+    setSelectedSlot(null); // Réinitialise le créneau sélectionné
   }, []);
 
   useEffect(() => {
@@ -98,6 +100,10 @@ const WeeklyScheduler = () => {
     },
     [closeModal]
   );
+
+  const handleCloseOrder = () => {
+    setEditOrder(null);
+  };
 
   useEffect(() => {
     const monday = new Date(weekStartDate);
@@ -434,7 +440,10 @@ const WeeklyScheduler = () => {
             {showModal && editOrder && (
               <EditOrderModal
                 order={editOrder}
-                onClose={closeModal}
+                onClose={() => {
+                  closeModal();
+                  handleCloseOrder();
+                }}
                 onSave={() => {
                   handleSaveOrder();
                   closeModal();
@@ -609,7 +618,9 @@ const WeeklyScheduler = () => {
                   </div>
                 </div>
                 <div className="bg-gray-800 p-4 mt-2 shadow-lg rounded-lg flex flex-col items-center">
-                  <div className="text-red-400 font-semibold">Chiffre d'affaires</div>
+                  <div className="text-red-400 font-semibold">
+                    Chiffre d'affaires
+                  </div>
                   <div className="text-green-400 font-bold text-lg">
                     {getDailyRevenue(day).toLocaleString("fr-FR", {
                       style: "currency",
