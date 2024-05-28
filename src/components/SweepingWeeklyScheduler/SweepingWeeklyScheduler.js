@@ -415,7 +415,7 @@ const SweepingWeeklyScheduler = () => {
 
   return (
     <div className="bg-gray-900 text-white min-h-screen relative flex flex-col items-center">
-      <div className="w-full max-w-7xl px-4 py-6 flex flex-col space-y-4">
+      <div className="w-full max-w-7xl px-2 py-6 flex flex-col space-y-4">
         <div className="flex justify-between items-center w-full">
           <button
             onClick={handlePrevWeek}

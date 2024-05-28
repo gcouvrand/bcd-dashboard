@@ -10,19 +10,19 @@ function App() {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      <div className="w-64 bg-gray-800 text-white flex flex-col">
-        <div className="px-6 py-4 text-2xl font-semibold">
+      <div className="w-52 bg-gray-800 text-white flex flex-col">
+        <div className="px-4 py-4 text-2xl font-semibold">
           Dashboard
         </div>
         <nav className="flex-1">
           <button 
-            className={`w-full text-left px-6 py-3 hover:bg-gray-700 ${selectedScheduler === 'weekly' ? 'bg-gray-700' : ''}`}
+            className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'weekly' ? 'bg-gray-700' : ''}`}
             onClick={() => setSelectedScheduler('weekly')}
           >
             Planning Livraisons
           </button>
           <button 
-            className={`w-full text-left px-6 py-3 hover:bg-gray-700 ${selectedScheduler === 'sweeping' ? 'bg-gray-700' : ''}`}
+            className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'sweeping' ? 'bg-gray-700' : ''}`}
             onClick={() => setSelectedScheduler('sweeping')}
           >
             Planning Ramonages
