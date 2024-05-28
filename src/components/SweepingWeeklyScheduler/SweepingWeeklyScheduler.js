@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import axios from "axios";
 import "tailwindcss/tailwind.css";
 import EditOrderModal from "../EditSweepingOrderModal/EditSweepingOrderModal";
@@ -70,6 +76,8 @@ const SweepingWeeklyScheduler = () => {
     }, 1000); // Simule un délai de rafraîchissement
   };
 
+  const summaryRef = useRef(null);
+
   const handleSaveOrder = useCallback(
     (updatedOrder) => {
       if (
@@ -115,6 +123,21 @@ const SweepingWeeklyScheduler = () => {
       loadOrders(dates[0]);
     }
   }, [weekStartDate, reloadOrders]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        showSummary &&
+        summaryRef.current &&
+        !summaryRef.current.contains(event.target)
+      ) {
+        setShowSummary(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showSummary]);
 
   const loadOrders = async (startDate) => {
     const formattedDate = startDate.toISOString().substring(0, 10);
@@ -443,14 +466,16 @@ const SweepingWeeklyScheduler = () => {
           </button>
           <button
             onClick={() => setShowSummary(!showSummary)}
-            className="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200 shadow-md flex items-center justify-between"
+            className="bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-blue-300 transition duration-200 shadow-md flex items-center justify-between"
           >
             <span>Résumé de la semaine</span>
-            {showSummary ? <FaChevronUp /> : <FaChevronDown />}
           </button>
         </div>
         {showSummary && (
-          <div className="absolute right-4 top-28 bg-gray-800 p-6 shadow-lg rounded-lg z-10 w-96">
+          <div
+            ref={summaryRef}
+            className="absolute right-56 top-16 bg-gray-800 p-6 shadow-lg rounded-lg z-10 w-96"
+          >
             <h2 className="text-2xl font-bold mb-4 text-center">
               Résumé de la semaine
             </h2>

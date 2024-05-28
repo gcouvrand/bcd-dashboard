@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import axios from "axios";
 import "tailwindcss/tailwind.css";
 import EditOrderModal from "../EditOrderModal/EditOrderModal";
@@ -34,10 +40,10 @@ const WeeklyScheduler = () => {
   const [showSummary, setShowSummary] = useState(false);
 
   const closeModal = useCallback(() => {
-    setShowModal(false); 
-    setShowSlotModal(false); 
-    setSelectedDay(null); 
-    setSelectedSlot(null); 
+    setShowModal(false);
+    setShowSlotModal(false);
+    setSelectedDay(null);
+    setSelectedSlot(null);
   }, []);
 
   useEffect(() => {
@@ -67,8 +73,10 @@ const WeeklyScheduler = () => {
     setTimeout(() => {
       setReloadOrders((prev) => !prev);
       setIsRefreshing(false);
-    }, 1000); 
+    }, 1000);
   };
+
+  const summaryRef = useRef(null);
 
   const handleSaveOrder = useCallback(
     (updatedOrder) => {
@@ -97,7 +105,7 @@ const WeeklyScheduler = () => {
       });
       setEditOrder(null);
       closeModal();
-      setReloadOrders((prev) => !prev); 
+      setReloadOrders((prev) => !prev);
     },
     [closeModal]
   );
@@ -115,6 +123,21 @@ const WeeklyScheduler = () => {
       loadOrders(dates[0]);
     }
   }, [weekStartDate, reloadOrders]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        showSummary &&
+        summaryRef.current &&
+        !summaryRef.current.contains(event.target)
+      ) {
+        setShowSummary(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showSummary]);
 
   const loadOrders = async (startDate) => {
     const formattedDate = startDate.toISOString().substring(0, 10);
@@ -443,14 +466,16 @@ const WeeklyScheduler = () => {
           </button>
           <button
             onClick={() => setShowSummary(!showSummary)}
-            className="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200 shadow-md flex items-center justify-between"
+            className="bg-blue-400 text-white px-4 py-2 rounded-lg hover:bg-blue-300 transition duration-200 shadow-md flex items-center justify-between"
           >
             <span>Résumé de la semaine</span>
-            {showSummary ? <FaChevronUp /> : <FaChevronDown />}
           </button>
         </div>
         {showSummary && (
-          <div className="absolute right-0 top-28 bg-gray-800 p-6 shadow-lg rounded-lg z-10 w-96">
+          <div
+            ref={summaryRef}
+            className="absolute right-56 top-16 bg-gray-800 p-6 shadow-lg rounded-lg z-10 w-96"
+          >
             <h2 className="text-2xl font-bold mb-4 text-center">
               Résumé de la semaine
             </h2>
