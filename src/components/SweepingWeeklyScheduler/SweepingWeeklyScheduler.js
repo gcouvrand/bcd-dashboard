@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import "tailwindcss/tailwind.css";
-import EditOrderModal from "../EditOrderModal/EditOrderModal";
+import EditOrderModal from "../EditSweepingOrderModal/EditSweepingOrderModal";
 import Modal from "./Modal";
 import SlotModal from "./SlotModal";
 import {
@@ -16,7 +16,7 @@ import {
 } from "./utils";
 import { FaSync, FaChevronUp, FaChevronDown } from "react-icons/fa";
 
-const WeeklyScheduler = () => {
+const SweepingWeeklyScheduler = () => {
   const [weekStartDate, setWeekStartDate] = useState(new Date());
   const [orders, setOrders] = useState({});
   const [weekDates, setWeekDates] = useState([]);
@@ -34,10 +34,10 @@ const WeeklyScheduler = () => {
   const [showSummary, setShowSummary] = useState(false);
 
   const closeModal = useCallback(() => {
-    setShowModal(false); 
-    setShowSlotModal(false); 
-    setSelectedDay(null); 
-    setSelectedSlot(null); 
+    setShowModal(false); // Ferme la modal de jour
+    setShowSlotModal(false); // Ferme la modal de créneau
+    setSelectedDay(null); // Réinitialise le jour sélectionné
+    setSelectedSlot(null); // Réinitialise le créneau sélectionné
   }, []);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ const WeeklyScheduler = () => {
     setTimeout(() => {
       setReloadOrders((prev) => !prev);
       setIsRefreshing(false);
-    }, 1000); 
+    }, 1000); // Simule un délai de rafraîchissement
   };
 
   const handleSaveOrder = useCallback(
@@ -97,7 +97,7 @@ const WeeklyScheduler = () => {
       });
       setEditOrder(null);
       closeModal();
-      setReloadOrders((prev) => !prev); 
+      setReloadOrders((prev) => !prev); // Toggle the reloadOrders state to force reloading orders
     },
     [closeModal]
   );
@@ -120,7 +120,7 @@ const WeeklyScheduler = () => {
     const formattedDate = startDate.toISOString().substring(0, 10);
     try {
       const response = await axios.get(
-        `https://bcd-backend-1ba2057cf6f6.herokuapp.com/get-week-orders?start_date=${formattedDate}`
+        `https://bcd-backend-1ba2057cf6f6.herokuapp.com/get-week-sweepings?start_date=${formattedDate}`
       );
       const weeklyOrders = {};
       let totalRevenue = 0;
@@ -289,7 +289,7 @@ const WeeklyScheduler = () => {
     try {
       if (isBlocked) {
         await axios.delete(
-          `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates/${formattedDate}`,
+          `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-sweeping-dates/${formattedDate}`,
           {
             headers: { "Content-Type": "application/json" },
             data: {},
@@ -314,7 +314,7 @@ const WeeklyScheduler = () => {
           );
 
         await axios.post(
-          "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates",
+          "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-sweeping-dates",
           {
             date: formattedDate,
             blockedTimes: freeSlots,
@@ -361,7 +361,7 @@ const WeeklyScheduler = () => {
     try {
       if (isBlockedSlot) {
         await axios.delete(
-          `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates/${formattedDate}`,
+          `https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-sweeping-dates/${formattedDate}`,
           {
             headers: { "Content-Type": "application/json" },
             data: { times: [slot] },
@@ -382,7 +382,7 @@ const WeeklyScheduler = () => {
         });
       } else {
         await axios.post(
-          "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-dates",
+          "https://bcd-backend-1ba2057cf6f6.herokuapp.com/blocked-sweeping-dates",
           {
             date: formattedDate,
             blockedTimes: [slot],
@@ -450,16 +450,12 @@ const WeeklyScheduler = () => {
           </button>
         </div>
         {showSummary && (
-          <div className="absolute right-0 top-28 bg-gray-800 p-6 shadow-lg rounded-lg z-10 w-96">
+          <div className="absolute right-4 top-28 bg-gray-800 p-6 shadow-lg rounded-lg z-10 w-96">
             <h2 className="text-2xl font-bold mb-4 text-center">
               Résumé de la semaine
             </h2>
             <div className="space-y-6">
               <div className="border-b border-gray-700 pb-4">
-                <h3 className="text-xl font-semibold mb-2">Stères</h3>
-                <div className="text-blue-400 font-semibold mb-2">
-                  Total des stères : {steresTotal}
-                </div>
                 {getTotalItems("weeklySteres").map((item, index) => (
                   <div key={index} className="text-gray-300">
                     <span className="font-semibold">{item.name} :</span>{" "}
@@ -679,4 +675,4 @@ const WeeklyScheduler = () => {
   );
 };
 
-export default WeeklyScheduler;
+export default SweepingWeeklyScheduler;
