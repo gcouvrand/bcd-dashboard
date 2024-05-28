@@ -61,7 +61,7 @@ const WeeklyScheduler = () => {
   const handleSlotClick = useCallback((dayIndex, slot) => {
     setSelectedSlot({ dayIndex, slot });
     setShowSlotModal(true);
-  }, []);
+  }, [orders]);
 
   const handleEditOrder = useCallback((order) => {
     setEditOrder(order);
@@ -109,6 +109,22 @@ const WeeklyScheduler = () => {
     },
     [closeModal]
   );
+
+  const handleDeleteOrder = useCallback((day, slot, orderId) => {
+    axios.delete(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/orders/${orderId}`)
+        .then(() => {
+            const newOrders = { ...orders };
+            const slotOrders = newOrders[day][slot].filter(order => order._id !== orderId);
+            if (slotOrders.length > 0) {
+                newOrders[day][slot] = slotOrders;
+            } else {
+                delete newOrders[day][slot];
+            }
+            setOrders(newOrders);
+            setShowSlotModal(false);
+        })
+        .catch(error => console.error('Erreur lors de la suppression:', error));
+}, [orders]);
 
   const handleCloseOrder = () => {
     setEditOrder(null);
@@ -598,7 +614,7 @@ const WeeklyScheduler = () => {
                             <div
                               key={`${hourKey}-${slotIndex}`}
                               className={`flex items-start p-2 text-xs flex-grow ${slotClassName} hover:bg-opacity-75 transition duration-200 ease-in-out cursor-pointer`}
-                              onClick={() => handleEditOrder(slot)}
+                              onClick={() => handleSlotClick(index, hourKey)}
                             >
                               <div className="w-16 font-semibold text-gray-900">
                                 {hourKey}
@@ -686,7 +702,10 @@ const WeeklyScheduler = () => {
         orders={orders}
         setShowSlotModal={setShowSlotModal}
         handleEditOrder={handleEditOrder}
+        setShowModal={setShowModal} // Pass this to control modal from SlotModal
+        handleDeleteOrder={handleDeleteOrder}
       />
+
       {showModal && editOrder && (
         <EditOrderModal
           order={editOrder}
