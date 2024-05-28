@@ -17,7 +17,7 @@ import {
 // Enregistrer la localisation française
 registerLocale('fr', fr);
 
-const EditSweepingOrderModal = ({ order, onClose, onSave }) => {
+const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder }) => {
     const [editedOrder, setEditedOrder] = useState({
         date: '',
         time: '',
@@ -38,7 +38,7 @@ const EditSweepingOrderModal = ({ order, onClose, onSave }) => {
     const [isProductListModalOpen, setIsProductListModalOpen] = useState(false);
 
     useEffect(() => {
-        if (order) {
+        if (order && !isAddingOrder) {
             const formattedDate = order.date ? parseISO(order.date) : null;
             setEditedOrder({
                 date: formattedDate,
@@ -56,8 +56,26 @@ const EditSweepingOrderModal = ({ order, onClose, onSave }) => {
                     telephone: order.userInfo.telephone || ''
                 }
             });
+        } else if (isAddingOrder) {
+            setEditedOrder({
+                ...editedOrder,
+                date: new Date(),
+                time: '',
+                deliveryFee: '',
+                discount: '',
+                cartItems: [],
+                userInfo: {
+                    nom: '',
+                    prenom: '',
+                    adresse: '',
+                    codePostal: '',
+                    ville: '',
+                    email: '',
+                    telephone: ''
+                }
+            });
         }
-    }, [order]);
+    }, [order, isAddingOrder]);
 
     const handleInputChange = (e, field) => {
         setEditedOrder({ ...editedOrder, [field]: e.target.value });
@@ -103,20 +121,6 @@ const EditSweepingOrderModal = ({ order, onClose, onSave }) => {
     };
 
     const handleSave = async () => {
-        if (!order || !order._id) {
-            toast.error("L'ID de la commande est manquant.", {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                className: 'bg-red-600 text-white',
-                progressClassName: 'bg-red-300'
-            });
-            return;
-        }
-
         const isValidDate = isValid(editedOrder.date);
         const isValidTime = editedOrder.time && editedOrder.time.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
 
@@ -153,7 +157,7 @@ const EditSweepingOrderModal = ({ order, onClose, onSave }) => {
 
         const formattedOrder = {
             ...editedOrder,
-            deliverySlot: {
+            ramonageSlot: {
                 date: utcDate.toISOString()
             },
             cartItems: editedOrder.cartItems.map(({ id, city, ...rest }) => rest),
@@ -163,9 +167,15 @@ const EditSweepingOrderModal = ({ order, onClose, onSave }) => {
         };
 
         try {
-            const response = await axios.put(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/ramonages/${order._id}`, formattedOrder);
+            let response;
+            if (isAddingOrder) {
+                response = await axios.post(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/confirm_order`, formattedOrder);
+            } else {
+                response = await axios.put(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/ramonages/${order._id}`, formattedOrder);
+            }
+
             if (response.status === 200) {
-                toast.success("La commande a été mise à jour avec succès!", {
+                toast.success(`La commande a été ${isAddingOrder ? 'ajoutée' : 'mise à jour'} avec succès!`, {
                     position: "top-right",
                     autoClose: 5000,
                     hideProgressBar: false,
@@ -178,7 +188,7 @@ const EditSweepingOrderModal = ({ order, onClose, onSave }) => {
                 onSave();
                 window.location.reload(); // Rafraîchit la page après la modification
             } else {
-                toast.error("Une erreur est survenue lors de la mise à jour de la commande.", {
+                toast.error("Une erreur est survenue lors de la sauvegarde de la commande.", {
                     position: "top-right",
                     autoClose: 5000,
                     hideProgressBar: false,
@@ -200,7 +210,7 @@ const EditSweepingOrderModal = ({ order, onClose, onSave }) => {
                 className: 'bg-red-600 text-white',
                 progressClassName: 'bg-red-300'
             });
-            console.error("Error updating order:", error);
+            console.error("Error saving order:", error);
         }
     };
 
@@ -215,12 +225,10 @@ const EditSweepingOrderModal = ({ order, onClose, onSave }) => {
         />
     ));
 
-    if (!order) return null;
-
     return (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 overflow-auto">
             <div className="bg-gray-900 p-6 rounded-lg shadow-xl text-white w-full max-w-4xl m-8 space-y-4">
-                <h4 className="text-2xl font-bold mb-6 text-center">Modifier la commande</h4>
+                <h4 className="text-2xl font-bold mb-6 text-center">{isAddingOrder ? 'Ajouter une commande' : 'Modifier la commande'}</h4>
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>

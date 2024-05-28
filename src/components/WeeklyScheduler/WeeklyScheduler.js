@@ -38,12 +38,14 @@ const WeeklyScheduler = () => {
   const [reloadOrders, setReloadOrders] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
+  const [isAddingOrder, setIsAddingOrder] = useState(false);
 
   const closeModal = useCallback(() => {
     setShowModal(false);
     setShowSlotModal(false);
     setSelectedDay(null);
     setSelectedSlot(null);
+    setIsAddingOrder(false);
   }, []);
 
   useEffect(() => {
@@ -61,12 +63,21 @@ const WeeklyScheduler = () => {
   const handleSlotClick = useCallback((dayIndex, slot) => {
     setSelectedSlot({ dayIndex, slot });
     setShowSlotModal(true);
-  }, [orders]);
+  }, []);
 
   const handleEditOrder = useCallback((order) => {
     setEditOrder(order);
+    setIsAddingOrder(false);
     setShowModal(true);
   }, []);
+
+
+  const handleAddOrder = useCallback(() => {
+    setEditOrder(null);
+    setIsAddingOrder(true);
+    setShowModal(true);
+  }, []);
+
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -686,7 +697,7 @@ const WeeklyScheduler = () => {
         </div>
       </div>
       <Modal
-        showModal={showModal}
+        showModal={showModal && !isAddingOrder}
         selectedDay={selectedDay}
         weekDates={weekDates}
         toggleDayBlock={toggleDayBlock}
@@ -702,23 +713,23 @@ const WeeklyScheduler = () => {
         orders={orders}
         setShowSlotModal={setShowSlotModal}
         handleEditOrder={handleEditOrder}
-        setShowModal={setShowModal} // Pass this to control modal from SlotModal
+        handleAddOrder={handleAddOrder}
         handleDeleteOrder={handleDeleteOrder}
       />
-
-      {showModal && editOrder && (
-        <EditOrderModal
-          order={editOrder}
-          onClose={() => {
-            closeModal();
-            handleCloseOrder();
-          }}
-          onSave={() => {
-            handleSaveOrder();
-            closeModal();
-          }}
-        />
-      )}
+        {showModal && (
+          <EditOrderModal
+            order={editOrder}
+            onClose={() => {
+              closeModal();
+              handleCloseOrder();
+            }}
+            onSave={() => {
+              handleSaveOrder();
+              closeModal();
+            }}
+            isAddingOrder={isAddingOrder}
+          />
+        )}
     </div>
   );
 };

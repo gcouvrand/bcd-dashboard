@@ -7,7 +7,7 @@ import React, {
   } from "react";
   import axios from "axios";
   import "tailwindcss/tailwind.css";
-  import EditOrderModal from "../EditSweepingOrderModal/EditSweepingOrderModal";
+  import EditSweepingOrderModal from "../EditSweepingOrderModal/EditSweepingOrderModal";
   import Modal from "./Modal";
   import SlotModal from "./SlotModal";
   import {
@@ -38,12 +38,14 @@ import React, {
     const [reloadOrders, setReloadOrders] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
+    const [isAddingOrder, setIsAddingOrder] = useState(false);
   
     const closeModal = useCallback(() => {
-      setShowModal(false); // Ferme la modal de jour
-      setShowSlotModal(false); // Ferme la modal de créneau
-      setSelectedDay(null); // Réinitialise le jour sélectionné
-      setSelectedSlot(null); // Réinitialise le créneau sélectionné
+      setShowModal(false);
+      setShowSlotModal(false);
+      setSelectedDay(null);
+      setSelectedSlot(null);
+      setIsAddingOrder(false);
     }, []);
   
     useEffect(() => {
@@ -65,6 +67,13 @@ import React, {
   
     const handleEditOrder = useCallback((order) => {
       setEditOrder(order);
+      setIsAddingOrder(false);
+      setShowModal(true);
+    }, []);
+  
+    const handleAddOrder = useCallback(() => {
+      setEditOrder(null);
+      setIsAddingOrder(true);
       setShowModal(true);
     }, []);
   
@@ -73,7 +82,7 @@ import React, {
       setTimeout(() => {
         setReloadOrders((prev) => !prev);
         setIsRefreshing(false);
-      }, 1000); // Simule un délai de rafraîchissement
+      }, 1000);
     };
   
     const summaryRef = useRef(null);
@@ -105,7 +114,7 @@ import React, {
         });
         setEditOrder(null);
         closeModal();
-        setReloadOrders((prev) => !prev); // Toggle the reloadOrders state to force reloading orders
+        setReloadOrders((prev) => !prev);
       },
       [closeModal]
     );
@@ -698,10 +707,11 @@ import React, {
           orders={orders}
           setShowSlotModal={setShowSlotModal}
           handleEditOrder={handleEditOrder}
+          handleAddOrder={handleAddOrder}
           handleDeleteOrder={handleDeleteOrder}
         />
-        {showModal && editOrder && (
-          <EditOrderModal
+        {showModal && (
+          <EditSweepingOrderModal
             order={editOrder}
             onClose={() => {
               closeModal();
@@ -711,6 +721,7 @@ import React, {
               handleSaveOrder();
               closeModal();
             }}
+            isAddingOrder={isAddingOrder}
           />
         )}
       </div>
