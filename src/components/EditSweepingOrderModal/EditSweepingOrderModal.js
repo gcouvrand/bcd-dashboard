@@ -155,6 +155,17 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
             return;
         }
 
+        const formattedOrderUpdate = {
+            ...editedOrder,
+            deliverySlot: {
+                date: utcDate.toISOString()
+            },
+            cartItems: editedOrder.cartItems.map(({ id, city, ...rest }) => rest),
+            deliveryFee: parseFloat(editedOrder.deliveryFee) || 0,
+            discount: parseFloat(editedOrder.discount) || 0,
+            cartTotal: calculateTotal(editedOrder.cartItems, editedOrder.deliveryFee, editedOrder.discount)
+        };
+
         const formattedOrder = {
             ...editedOrder,
             ramonageSlot: {
@@ -166,12 +177,13 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
             cartTotal: calculateTotal(editedOrder.cartItems, editedOrder.deliveryFee, editedOrder.discount)
         };
 
+
         try {
             let response;
             if (isAddingOrder) {
                 response = await axios.post(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/confirm_order`, formattedOrder);
             } else {
-                response = await axios.put(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/ramonages/${order._id}`, formattedOrder);
+                response = await axios.put(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/ramonages/${order._id}`, formattedOrderUpdate);
             }
 
             if (response.status === 200) {
