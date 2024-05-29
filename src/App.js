@@ -43,6 +43,7 @@ function App() {
     } catch (err) {
       toast.error('Mot de passe incorrect');
     }
+    setPassword(''); // Vider le champ de mot de passe après la tentative de connexion
   };
 
   const handleLogout = () => {
