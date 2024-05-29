@@ -71,7 +71,7 @@ function App() {
                 type="submit" 
                 className="w-full bg-black text-white px-3 py-2 rounded-lg hover:bg-gray-800" // Bouton noir
               >
-                Soumettre
+                Connexion
               </button>
             </form>
           </div>
