@@ -61,9 +61,10 @@ import React, {
     }, []);
   
     const handleSlotClick = useCallback((dayIndex, slot) => {
-      setSelectedSlot({ dayIndex, slot });
+      const selectedDate = weekDates[dayIndex];
+      setSelectedSlot({ dayIndex, slot, date: selectedDate, time: slot });
       setShowSlotModal(true);
-    }, []);
+    }, [weekDates]);
   
     const handleEditOrder = useCallback((order) => {
       setEditOrder(order);
@@ -722,6 +723,8 @@ import React, {
               closeModal();
             }}
             isAddingOrder={isAddingOrder}
+            initialDate={selectedSlot ? selectedSlot.date : null}
+            initialTime={selectedSlot ? selectedSlot.time : null}
           />
         )}
       </div>

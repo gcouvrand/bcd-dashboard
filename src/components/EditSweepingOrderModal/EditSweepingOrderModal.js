@@ -17,10 +17,10 @@ import {
 // Enregistrer la localisation française
 registerLocale('fr', fr);
 
-const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder }) => {
+const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initialDate, initialTime }) => {
     const [editedOrder, setEditedOrder] = useState({
-        date: '',
-        time: '',
+        date: initialDate || '',
+        time: initialTime || '',
         deliveryFee: '',
         discount: '',
         cartItems: [],
@@ -39,10 +39,10 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder }) => {
 
     useEffect(() => {
         if (order && !isAddingOrder) {
-            const formattedDate = order.date ? parseISO(order.date) : null;
+            const formattedDate = order.date ? parseISO(order.date) : initialDate;
             setEditedOrder({
-                date: formattedDate,
-                time: formatTimeForInput(order.date),
+                date: formattedDate || initialDate,
+                time: formatTimeForInput(order.date) || initialTime,
                 deliveryFee: order.deliveryFee !== undefined ? order.deliveryFee : '',
                 discount: order.discount !== undefined ? order.discount : '',
                 cartItems: order.cartItems || [],
@@ -59,8 +59,8 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder }) => {
         } else if (isAddingOrder) {
             setEditedOrder({
                 ...editedOrder,
-                date: new Date(),
-                time: '',
+                date: initialDate,
+                time: initialTime,
                 deliveryFee: '',
                 discount: '',
                 cartItems: [],
@@ -75,7 +75,7 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder }) => {
                 }
             });
         }
-    }, [order, isAddingOrder]);
+    }, [order, isAddingOrder, initialTime]);
 
     const handleInputChange = (e, field) => {
         setEditedOrder({ ...editedOrder, [field]: e.target.value });
