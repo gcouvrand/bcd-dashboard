@@ -58,7 +58,7 @@ function App() {
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-50">
           <div className="bg-white rounded-lg p-8 shadow-lg">
             <form onSubmit={handlePasswordSubmit}>
-              <h2 className="text-2xl font-semibold mb-4">Veuillez entrer le mot de passe</h2>
+              <h2 className="text-2xl font-semibold text-center mb-4">Dashboard - BCD</h2>
               <input 
                 type="password" 
                 value={password}
