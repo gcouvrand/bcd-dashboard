@@ -5,7 +5,7 @@ import SweepingWeeklyScheduler from "./components/SweepingWeeklyScheduler/Sweepi
 import WeeklyScheduler from "./components/WeeklyScheduler/WeeklyScheduler";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import jwtDecode from "jwt-decode"; // Corrigé l'import de jwtDecode
+import { jwtDecode } from "jwt-decode"; // Corrigé l'import de jwtDecode
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
 
