@@ -39,14 +39,18 @@ const WeeklyScheduler = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [isAddingOrder, setIsAddingOrder] = useState(false);
+  const [showEditOrderModal, setShowEditOrderModal] = useState(false);
+
 
   const closeModal = useCallback(() => {
     setShowModal(false);
     setShowSlotModal(false);
+    setShowEditOrderModal(false); // Ajout pour fermer EditOrderModal
     setSelectedDay(null);
     setSelectedSlot(null);
     setIsAddingOrder(false);
   }, []);
+  
 
   useEffect(() => {
     fetchBlockedDays().then(({ blocked, blockedSlots }) => {
@@ -59,6 +63,7 @@ const WeeklyScheduler = () => {
     setSelectedDay(index);
     setShowModal(true);
   }, []);
+  
 
   const handleSlotClick = useCallback((dayIndex, slot) => {
     const selectedDate = weekDates[dayIndex];
@@ -69,7 +74,7 @@ const WeeklyScheduler = () => {
   const handleEditOrder = useCallback((order) => {
     setEditOrder(order);
     setIsAddingOrder(false);
-    setShowModal(true);
+    setShowEditOrderModal(true);
   }, []);
 
 
@@ -579,96 +584,92 @@ const WeeklyScheduler = () => {
                   style={{ minHeight: "90vh" }}
                 >
                   {hours.map((hour, i) => {
-                    const hourKey = `${Math.floor(hour)}:${
-                      hour % 1 === 0 ? "00" : "30"
-                    }`;
-                    const slots = orders[day] && orders[day][hourKey];
-                    const isBlockedSlot =
-                      blockedSlots[formatDateISO(weekDates[index])] &&
-                      blockedSlots[formatDateISO(weekDates[index])].includes(
-                        hourKey
-                      );
+  const hourKey = `${Math.floor(hour)}:${hour % 1 === 0 ? "00" : "30"}`;
+  const slots = orders[day] && orders[day][hourKey];
+  const isBlockedSlot =
+    blockedSlots[formatDateISO(weekDates[index])] &&
+    blockedSlots[formatDateISO(weekDates[index])].includes(hourKey);
 
-                    const currentDate = new Date();
-                    const formattedCurrentDate = formatDateISO(currentDate);
-                    const currentHour = currentDate.getHours();
+  const currentDate = new Date();
+  const formattedCurrentDate = formatDateISO(currentDate);
+  const currentHour = currentDate.getHours();
 
-                    let slotClassName = "";
-                    if (slots && slots.length > 0) {
-                      slots.forEach((slot, idx) => {
-                        if (slot.status === "EN COURS") {
-                          slotClassName = "bg-red-400";
-                        } else if (slot.status.startsWith("FA")) {
-                          slotClassName = "bg-gray-400";
-                        } else {
-                          slotClassName = "bg-red-200";
-                        }
-                      });
-                    } else if (isBlockedSlot) {
-                      slotClassName = "bg-gray-600 text-gray-400";
-                    } else {
-                      const slotDate = formatDateISO(weekDates[index]);
-                      if (
-                        slotDate < formattedCurrentDate ||
-                        (slotDate === formattedCurrentDate &&
-                          hour <= currentHour)
-                      ) {
-                        slotClassName = "bg-gray-400";
-                      } else {
-                        slotClassName = "bg-green-200";
-                      }
-                    }
+  let slotClassName = "";
+  if (slots && slots.length > 0) {
+    slots.forEach((slot, idx) => {
+      if (slot.status === "EN COURS") {
+        slotClassName = "bg-red-400";
+      } else if (slot.status.startsWith("FA")) {
+        slotClassName = "bg-gray-400";
+      } else {
+        slotClassName = "bg-red-200";
+      }
+    });
+  } else if (isBlockedSlot) {
+    slotClassName = "bg-gray-600 text-gray-400";
+  } else {
+    const slotDate = formatDateISO(weekDates[index]);
+    if (
+      slotDate < formattedCurrentDate ||
+      (slotDate === formattedCurrentDate &&
+        hour <= currentHour)
+    ) {
+      slotClassName = "bg-gray-400";
+    } else {
+      slotClassName = "bg-green-200";
+    }
+  }
 
-                    return (
-                      <div key={i} className="flex flex-col flex-grow">
-                        {slots && slots.length > 0 ? (
-                          slots.map((slot, slotIndex) => (
-                            <div
-                              key={`${hourKey}-${slotIndex}`}
-                              className={`flex items-start p-2 text-xs flex-grow ${slotClassName} hover:bg-opacity-75 transition duration-200 ease-in-out cursor-pointer`}
-                              onClick={() => handleSlotClick(index, hourKey)}
-                            >
-                              <div className="w-16 font-semibold text-gray-900">
-                                {hourKey}
-                              </div>
-                              <div className="flex flex-col flex-grow -ml-6 -mt-1">
-                                <div className="text-black font-bold text-lg mb-1">
-                                  {formatName(slot.userName)}
-                                </div>
-                                <div className="text-gray-700 font-medium text-base mb-1">
-                                  {slot.city}
-                                </div>
-                                <div className="border-t border-gray-600 mt-1 pt-1">
-                                  {slot.cartItems.map((item, index) => (
-                                    <div
-                                      key={index}
-                                      className="text-gray-800 text-sm italic"
-                                    >
-                                      {item.name} - {item.quantity}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div
-                            className={`flex items-start p-2 text-xs flex-grow ${slotClassName} hover:bg-opacity-75 transition duration-200 ease-in-out cursor-pointer`}
-                            onClick={() => handleSlotClick(index, hourKey)}
-                          >
-                            <div className="w-16 font-semibold text-gray-900">
-                              {hourKey}
-                            </div>
-                            <div className="flex flex-col flex-grow -ml-6 -mt-1">
-                              <div className="text-gray-400 flex-grow text-sm mt-0.5">
-                                {isBlockedSlot ? "Bloqué" : "Libre"}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+  return (
+    <div key={i} className="flex flex-col flex-grow">
+      {slots && slots.length > 0 ? (
+        slots.map((slot, slotIndex) => (
+          <div
+            key={`${hourKey}-${slotIndex}`}
+            className={`flex items-start p-2 text-xs flex-grow ${slotClassName} hover:bg-opacity-75 transition duration-200 ease-in-out cursor-pointer`}
+            onClick={() => handleSlotClick(index, hourKey)}
+          >
+            <div className="w-16 font-semibold text-gray-900">
+              {hourKey}
+            </div>
+            <div className="flex flex-col flex-grow -ml-6 -mt-1">
+              <div className="text-black font-bold text-lg mb-1">
+                {formatName(slot.userName)}
+              </div>
+              <div className="text-gray-700 font-medium text-base mb-1">
+                {slot.city}
+              </div>
+              <div className="border-t border-gray-600 mt-1 pt-1">
+                {slot.cartItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="text-gray-800 text-sm italic"
+                  >
+                    {item.name} - {item.quantity}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))
+      ) : (
+        <div
+          className={`flex items-start p-2 text-xs flex-grow ${slotClassName} hover:bg-opacity-75 transition duration-200 ease-in-out cursor-pointer`}
+          onClick={() => handleSlotClick(index, hourKey)}
+        >
+          <div className="w-16 font-semibold text-gray-900">
+            {hourKey}
+          </div>
+          <div className="flex flex-col flex-grow -ml-6 -mt-1">
+            <div className="text-gray-400 flex-grow text-sm mt-0.5">
+              {isBlockedSlot ? "Bloqué" : "Libre"}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+})}
                 </div>
               </div>
 
@@ -698,41 +699,41 @@ const WeeklyScheduler = () => {
         </div>
       </div>
       <Modal
-        showModal={showModal && !isAddingOrder}
-        selectedDay={selectedDay}
-        weekDates={weekDates}
-        toggleDayBlock={toggleDayBlock}
-        blockedDays={blockedDays}
-        setShowModal={setShowModal}
-      />
-      <SlotModal
-        showSlotModal={showSlotModal}
-        selectedSlot={selectedSlot}
-        weekDates={weekDates}
-        toggleSlotBlock={toggleSlotBlock}
-        blockedSlots={blockedSlots}
-        orders={orders}
-        setShowSlotModal={setShowSlotModal}
-        handleEditOrder={handleEditOrder}
-        handleAddOrder={handleAddOrder}
-        handleDeleteOrder={handleDeleteOrder}
-      />
-        {showModal && (
-          <EditOrderModal
-            order={editOrder}
-            onClose={() => {
-              closeModal();
-              handleCloseOrder();
-            }}
-            onSave={() => {
-              handleSaveOrder();
-              closeModal();
-            }}
-            isAddingOrder={isAddingOrder}
-            initialDate={selectedSlot ? selectedSlot.date : null}
-            initialTime={selectedSlot ? selectedSlot.time : null}
-          />
-        )}
+  showModal={showModal}
+  selectedDay={selectedDay}
+  weekDates={weekDates}
+  toggleDayBlock={toggleDayBlock}
+  blockedDays={blockedDays}
+  setShowModal={setShowModal}
+/>
+<SlotModal
+  showSlotModal={showSlotModal}
+  selectedSlot={selectedSlot}
+  weekDates={weekDates}
+  toggleSlotBlock={toggleSlotBlock}
+  blockedSlots={blockedSlots}
+  orders={orders}
+  setShowSlotModal={setShowSlotModal}
+  handleEditOrder={handleEditOrder}
+  handleAddOrder={handleAddOrder}
+  handleDeleteOrder={handleDeleteOrder}
+/>
+{showEditOrderModal && (
+  <EditOrderModal
+    order={editOrder}
+    onClose={() => {
+      closeModal();
+      handleCloseOrder();
+    }}
+    onSave={() => {
+      handleSaveOrder();
+      closeModal();
+    }}
+    isAddingOrder={isAddingOrder}
+    initialDate={selectedSlot ? selectedSlot.date : null}
+    initialTime={selectedSlot ? selectedSlot.time : null}
+  />
+)}
     </div>
   );
 };
