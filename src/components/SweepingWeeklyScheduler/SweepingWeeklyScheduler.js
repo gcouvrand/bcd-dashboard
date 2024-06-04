@@ -39,10 +39,12 @@ import React, {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [showSummary, setShowSummary] = useState(false);
     const [isAddingOrder, setIsAddingOrder] = useState(false);
-  
+    const [showEditOrderModal, setShowEditOrderModal] = useState(false);
+
     const closeModal = useCallback(() => {
       setShowModal(false);
       setShowSlotModal(false);
+      setShowEditOrderModal(false); // Ajout pour fermer EditOrderModal
       setSelectedDay(null);
       setSelectedSlot(null);
       setIsAddingOrder(false);
@@ -69,7 +71,7 @@ import React, {
     const handleEditOrder = useCallback((order) => {
       setEditOrder(order);
       setIsAddingOrder(false);
-      setShowModal(true);
+      setShowEditOrderModal(true);
     }, []);
   
     const handleAddOrder = useCallback(() => {
@@ -711,7 +713,7 @@ import React, {
           handleAddOrder={handleAddOrder}
           handleDeleteOrder={handleDeleteOrder}
         />
-        {showModal && (
+        {showEditOrderModal  && (
           <EditSweepingOrderModal
             order={editOrder}
             onClose={() => {
