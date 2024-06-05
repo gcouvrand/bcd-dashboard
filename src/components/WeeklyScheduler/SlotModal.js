@@ -7,11 +7,11 @@ const SlotModal = memo(({
     weekDates,
     toggleSlotBlock,
     blockedSlots,
-    orders,
     setShowSlotModal,
     handleEditOrder,
     handleAddOrder,
-    handleDeleteOrder
+    handleDeleteOrder,
+    orders,
 }) => {
     if (!showSlotModal) return null;
 
@@ -22,6 +22,9 @@ const SlotModal = memo(({
     const tasks = orders[days[selectedSlot.dayIndex]] && orders[days[selectedSlot.dayIndex]][slot];
     const formattedDateLong = formatDateLong(date);
 
+    // Filtrer la commande spécifique basée sur orderId
+    const selectedOrder = tasks?.find(task => task._id === selectedSlot.orderId);
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
             <div className="bg-gray-900 p-6 rounded-lg shadow-xl text-white w-full max-w-md">
@@ -29,42 +32,48 @@ const SlotModal = memo(({
                     Actions pour le créneau de {slot} le {formattedDateLong}
                 </h4>
                 <div className="flex flex-col space-y-4">
-                    {tasks ? (
-                        <>
+                    {selectedOrder ? (
+                        <div className="space-y-4">
                             <button
-                                onClick={() => handleEditOrder(tasks[0])}
-                                className="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out"
+                                onClick={() => {
+                                    setShowSlotModal(false);
+                                    handleEditOrder(selectedOrder);
+                                }}
+                                className="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out w-full"
                             >
                                 Modifier
                             </button>
                             <button
-                                onClick={() => handleDeleteOrder(days[selectedSlot.dayIndex], slot, tasks[0]._id)}
-                                className="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out"
+                                onClick={() => handleDeleteOrder(days[selectedSlot.dayIndex], slot, selectedOrder._id)}
+                                className="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out w-full"
                             >
                                 Supprimer
                             </button>
-                        </>
+                        </div>
                     ) : (
-                        <>
+                        <div className="space-y-4">
                             <button
                                 onClick={toggleSlotBlock}
-                                className={`bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out ${
+                                className={`bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out w-full ${
                                     isBlockedSlot ? "bg-red-600 hover:bg-red-500" : ""
                                 }`}
                             >
                                 {isBlockedSlot ? "Débloquer" : "Bloquer"}
                             </button>
                             <button
-                                onClick={handleAddOrder}
-                                className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out"
+                                onClick={() => {
+                                    setShowSlotModal(false);
+                                    handleAddOrder();
+                                }}
+                                className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out w-full"
                             >
                                 Ajouter
                             </button>
-                        </>
+                        </div>
                     )}
                     <button
                         onClick={() => setShowSlotModal(false)}
-                        className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded transition duration-300 ease-in-out"
+                        className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out w-full"
                     >
                         Annuler
                     </button>

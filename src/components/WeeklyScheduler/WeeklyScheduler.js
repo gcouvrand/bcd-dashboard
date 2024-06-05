@@ -41,15 +41,33 @@ const WeeklyScheduler = () => {
   const [isAddingOrder, setIsAddingOrder] = useState(false);
   const [showEditOrderModal, setShowEditOrderModal] = useState(false);
 
-
   const closeModal = useCallback(() => {
     setShowModal(false);
     setShowSlotModal(false);
-    setShowEditOrderModal(false); // Ajout pour fermer EditOrderModal
+    setShowEditOrderModal(false);
     setSelectedDay(null);
     setSelectedSlot(null);
     setIsAddingOrder(false);
   }, []);
+
+  const handleEditOrder = useCallback((order) => {
+    setEditOrder(order);
+    setIsAddingOrder(false);
+    setShowEditOrderModal(true);
+  }, []);
+
+  const handleAddOrder = useCallback(() => {
+    setEditOrder(null);
+    setIsAddingOrder(true);
+    setShowEditOrderModal(true);
+  }, []);
+
+  const handleSlotClick = useCallback((dayIndex, slot, orderId) => {
+    const selectedDate = weekDates[dayIndex];
+    setSelectedSlot({ dayIndex, slot, date: selectedDate, time: slot, orderId });
+    setShowSlotModal(true);
+  }, [weekDates]);
+  
   
 
   useEffect(() => {
@@ -63,27 +81,6 @@ const WeeklyScheduler = () => {
     setSelectedDay(index);
     setShowModal(true);
   }, []);
-  
-
-  const handleSlotClick = useCallback((dayIndex, slot) => {
-    const selectedDate = weekDates[dayIndex];
-    setSelectedSlot({ dayIndex, slot, date: selectedDate, time: slot });
-    setShowSlotModal(true);
-  }, [weekDates]);
-
-  const handleEditOrder = useCallback((order) => {
-    setEditOrder(order);
-    setIsAddingOrder(false);
-    setShowEditOrderModal(true);
-  }, []);
-
-
-  const handleAddOrder = useCallback(() => {
-    setEditOrder(null);
-    setIsAddingOrder(true);
-    setShowModal(true);
-  }, []);
-
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -625,9 +622,9 @@ const WeeklyScheduler = () => {
       {slots && slots.length > 0 ? (
         slots.map((slot, slotIndex) => (
           <div
-            key={`${hourKey}-${slotIndex}`}
+            key={`${hourKey}-${slot._id}`} // Utiliser un identifiant unique pour chaque commande
             className={`flex items-start p-2 text-xs flex-grow ${slotClassName} hover:bg-opacity-75 transition duration-200 ease-in-out cursor-pointer`}
-            onClick={() => handleSlotClick(index, hourKey)}
+            onClick={() => handleSlotClick(index, hourKey, slot._id)}
           >
             <div className="w-16 font-semibold text-gray-900">
               {hourKey}
@@ -712,11 +709,11 @@ const WeeklyScheduler = () => {
   weekDates={weekDates}
   toggleSlotBlock={toggleSlotBlock}
   blockedSlots={blockedSlots}
-  orders={orders}
   setShowSlotModal={setShowSlotModal}
-  handleEditOrder={handleEditOrder}
-  handleAddOrder={handleAddOrder}
-  handleDeleteOrder={handleDeleteOrder}
+  handleEditOrder={handleEditOrder} // Passer handleEditOrder à SlotModal
+  handleAddOrder={handleAddOrder} // Passer handleAddOrder à SlotModal
+  handleDeleteOrder={handleDeleteOrder} // Passer handleDeleteOrder à SlotModal
+  orders={orders} // Passer orders à SlotModal
 />
 {showEditOrderModal && (
   <EditOrderModal
@@ -725,8 +722,8 @@ const WeeklyScheduler = () => {
       closeModal();
       handleCloseOrder();
     }}
-    onSave={() => {
-      handleSaveOrder();
+    onSave={(updatedOrder) => {
+      handleSaveOrder(updatedOrder);
       closeModal();
     }}
     isAddingOrder={isAddingOrder}
