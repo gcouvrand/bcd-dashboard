@@ -3,6 +3,7 @@ import axios from "axios";
 import "./index.css";
 import SweepingWeeklyScheduler from "./components/SweepingWeeklyScheduler/SweepingWeeklyScheduler";
 import WeeklyScheduler from "./components/WeeklyScheduler/WeeklyScheduler";
+import Clients from "./components/Clients/Clients";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode"; // Corrigé l'import de jwtDecode
@@ -111,6 +112,12 @@ function App() {
               >
                 Ramonages
               </button>
+              <button 
+                className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'clients' ? 'bg-gray-700' : ''}`}
+                onClick={() => setSelectedScheduler('clients')}
+              >
+                Clients
+              </button>
             </nav>
             <button 
               onClick={handleLogout}
@@ -123,6 +130,7 @@ function App() {
           <div className="flex-1 overflow-y-auto">
             {selectedScheduler === 'weekly' && <WeeklyScheduler />}
             {selectedScheduler === 'sweeping' && <SweepingWeeklyScheduler />}
+            {selectedScheduler === 'clients' && <Clients />}
           </div>
         </div>
       )}
