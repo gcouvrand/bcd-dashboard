@@ -35,7 +35,7 @@ const Clients = () => {
         const response = await axios.get('https://bcd-backend-1ba2057cf6f6.herokuapp.com/clients', {
           params: {
             page,
-            limit: 10,
+            limit: 12,
             search
           }
         });
