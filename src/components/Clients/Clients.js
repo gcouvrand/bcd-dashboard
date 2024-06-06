@@ -11,8 +11,9 @@ dayjs.locale('fr');
 dayjs.extend(localizedFormat);
 
 const formatName = (name) => {
-  return name.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
-};
+    return name.toLowerCase().replace(/(^\w{1}|\s+\w{1})/g, char => char.toUpperCase());
+  };
+  
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
