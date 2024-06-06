@@ -11,9 +11,8 @@ dayjs.locale('fr');
 dayjs.extend(localizedFormat);
 
 const formatName = (name) => {
-    return name.toLowerCase().replace(/(^\w{1}|\s+\w{1})/g, char => char.toUpperCase());
-  };
-  
+  return name.toLowerCase().replace(/(^|\s)\S/g, char => char.toUpperCase());
+};
 
 const Clients = () => {
   const [clients, setClients] = useState([]);
@@ -35,7 +34,7 @@ const Clients = () => {
         const response = await axios.get('https://bcd-backend-1ba2057cf6f6.herokuapp.com/clients', {
           params: {
             page,
-            limit: 12,
+            limit: 12, // Mettre à jour la limite à 12
             search
           }
         });
@@ -128,13 +127,13 @@ const Clients = () => {
                 <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
                 <p>{client.telephone}</p>
               </div>
-              <div className="flex items-center text-gray-600">
+              <div className="flex items-center text-gray-600 mb-1">
                 <MapPinIcon className="h-5 w-5 text-gray-400 mr-2" />
-                <p>{client.adresse}, {client.ville}, {client.codePostal}</p>
+                <p>{client.adresse}</p>
               </div>
-              <div className="text-gray-600 mt-3">
-                <p>Compte créé le: {formatDate(client.creation_date)}</p>
-              </div>
+              <p className="text-gray-600 mb-1">{client.codePostal}</p>
+              <p className="text-gray-600">{client.ville}</p>
+              <p className="text-gray-600"><strong>Compte créé le:</strong> {formatDate(client.creation_date)}</p>
             </div>
           ))}
         </div>
@@ -181,9 +180,6 @@ const Clients = () => {
                   <MapPinIcon className="h-6 w-6 text-gray-400 mr-2" />
                   <p>{selectedClient?.adresse}, {selectedClient?.ville}, {selectedClient?.codePostal}</p>
                 </div>
-                <div className="text-gray-600 mt-3">
-                  <p>Compte créé le: {formatDate(selectedClient?.creation_date)}</p>
-                </div>
                 {error && <p className="text-red-500">{error}</p>}
                 {orders.length > 0 && (
                   <div>
@@ -201,7 +197,6 @@ const Clients = () => {
                         <p><strong>Remise :</strong> {order.discount}€</p>
                         <p><strong>Total du panier :</strong> {order.cartTotal}€</p>
                         <p><strong>Date de livraison :</strong> {formatDate(order.deliverySlot.date)}</p>
-                        <p><strong>Date de création :</strong> {formatDate(order.creation_date)}</p>
                       </div>
                     ))}
                   </div>
