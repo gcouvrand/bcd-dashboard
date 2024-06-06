@@ -127,12 +127,14 @@ const Clients = () => {
                 <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
                 <p>{client.telephone}</p>
               </div>
-              <div className="flex items-center text-gray-600 mb-1">
+              <div className="flex items-start text-gray-600 mb-1">
                 <MapPinIcon className="h-5 w-5 text-gray-400 mr-2" />
-                <p>{client.adresse}</p>
+                <div>
+                  <p>{client.adresse}</p>
+                  <p>{client.codePostal}</p>
+                  <p>{client.ville}</p>
+                </div>
               </div>
-              <p className="text-gray-600 mb-1">{client.codePostal}</p>
-              <p className="text-gray-600">{client.ville}</p>
               <p className="text-gray-600"><strong>Compte créé le:</strong> {formatDate(client.creation_date)}</p>
             </div>
           ))}
@@ -176,9 +178,13 @@ const Clients = () => {
                   <PhoneIcon className="h-6 w-6 text-gray-400 mr-2" />
                   <p>{selectedClient?.telephone}</p>
                 </div>
-                <div className="flex items-center">
+                <div className="flex items-start">
                   <MapPinIcon className="h-6 w-6 text-gray-400 mr-2" />
-                  <p>{selectedClient?.adresse}, {selectedClient?.ville}, {selectedClient?.codePostal}</p>
+                  <div>
+                    <p>{selectedClient?.adresse}</p>
+                    <p>{selectedClient?.codePostal}</p>
+                    <p>{selectedClient?.ville}</p>
+                  </div>
                 </div>
                 {error && <p className="text-red-500">{error}</p>}
                 {orders.length > 0 && (
@@ -197,6 +203,7 @@ const Clients = () => {
                         <p><strong>Remise :</strong> {order.discount}€</p>
                         <p><strong>Total du panier :</strong> {order.cartTotal}€</p>
                         <p><strong>Date de livraison :</strong> {formatDate(order.deliverySlot.date)}</p>
+                        <p><strong>Date de création :</strong> {formatDate(order.creation_date)}</p>
                       </div>
                     ))}
                   </div>
