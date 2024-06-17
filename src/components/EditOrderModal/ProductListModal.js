@@ -8,7 +8,7 @@ const ProductListModal = ({ onClose, onAdd }) => {
         const fetchProducts = async () => {
             try {
                 const response = await axios.get('https://bcd-backend-1ba2057cf6f6.herokuapp.com/products');
-                const filteredProducts = response.data.filter(product => product.type !== "ramonage");
+                const filteredProducts = response.data
                 setProducts(filteredProducts);
             } catch (error) {
                 console.error('Error fetching products:', error);
