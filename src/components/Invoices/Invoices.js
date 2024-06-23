@@ -149,9 +149,9 @@ function Invoices() {
                     </div>
                     <div className="flex justify-center mb-4">
                         <button onClick={() => handleFilterChange('all')} className={`px-4 py-2 mr-2 rounded ${filter === 'all' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700'}`}>Tout</button>
-                        <button onClick={() => handleFilterChange('completedDeliveries')} className={`px-4 py-2 mr-2 rounded ${filter === 'completedDeliveries' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700'}`}>Livraison</button>
+                        <button onClick={() => handleFilterChange('completedDeliveries')} className={`px-4 py-2 mr-2 rounded ${filter === 'completedDeliveries' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700'}`}>Livraisons</button>
                         <button onClick={() => handleFilterChange('completedSweepings')} className={`px-4 py-2 mr-2 rounded ${filter === 'completedSweepings' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700'}`}>Ramonages</button>
-                        <button onClick={() => handleFilterChange('completedSales')} className={`px-4 py-2 rounded ${filter === 'completedSales' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700'}`}>Dépôt</button>
+                        <button onClick={() => handleFilterChange('completedSales')} className={`px-4 py-2 rounded ${filter === 'completedSales' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700'}`}>Dépôts</button>
                     </div>
                 </div>
                 {loading ? (
