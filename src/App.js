@@ -9,6 +9,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { jwtDecode } from "jwt-decode"; // Corrigé l'import de jwtDecode
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import Invoices from "./components/Invoices/Invoices";
+import Revenue from "./components/Revenue/Revenue";
 
 function App() {
   const [selectedScheduler, setSelectedScheduler] = useState('weekly');
@@ -100,30 +102,42 @@ function App() {
               Dashboard
             </div>
             <nav className="flex-1">
-              <button 
-                className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'weekly' ? 'bg-gray-700' : ''}`}
-                onClick={() => setSelectedScheduler('weekly')}
+              <button
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'weekly' ? 'bg-gray-700' : ''}`}
+                  onClick={() => setSelectedScheduler('weekly')}
               >
                 Livraisons
               </button>
-              <button 
-                className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'sweeping' ? 'bg-gray-700' : ''}`}
-                onClick={() => setSelectedScheduler('sweeping')}
+              <button
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'sweeping' ? 'bg-gray-700' : ''}`}
+                  onClick={() => setSelectedScheduler('sweeping')}
               >
                 Ramonages
               </button>
-              <button 
-                className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'clients' ? 'bg-gray-700' : ''}`}
-                onClick={() => setSelectedScheduler('clients')}
+              <button
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'clients' ? 'bg-gray-700' : ''}`}
+                  onClick={() => setSelectedScheduler('clients')}
               >
                 Clients
               </button>
+              <button
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'invoices' ? 'bg-gray-700' : ''}`}
+                  onClick={() => setSelectedScheduler('invoices')}
+              >
+                Factures
+              </button>
+              <button
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-700 ${selectedScheduler === 'revenue' ? 'bg-gray-700' : ''}`}
+                  onClick={() => setSelectedScheduler('revenue')}
+              >
+                Chiffre d'affaires
+              </button>
             </nav>
-            <button 
-              onClick={handleLogout}
-              className="w-full text-left px-4 py-3 mt-auto bg-gray-600 hover:bg-gray-700 flex items-center"
+            <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-3 mt-auto bg-gray-600 hover:bg-gray-700 flex items-center"
             >
-              <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
+              <FontAwesomeIcon icon={faSignOutAlt} className="mr-2"/>
               Déconnexion
             </button>
           </div>
@@ -131,6 +145,8 @@ function App() {
             {selectedScheduler === 'weekly' && <WeeklyScheduler />}
             {selectedScheduler === 'sweeping' && <SweepingWeeklyScheduler />}
             {selectedScheduler === 'clients' && <Clients />}
+            {selectedScheduler === 'invoices' && <Invoices />}
+            {selectedScheduler === 'revenue' && <Revenue />}
           </div>
         </div>
       )}
