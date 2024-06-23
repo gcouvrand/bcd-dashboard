@@ -71,6 +71,22 @@ function Revenue() {
         return Object.entries(revenueByMonth).sort(([a], [b]) => new Date(a) - new Date(b));
     };
 
+    const getAnnualRevenue = (invoices, startMonth, endMonth) => {
+        const revenueByMonth = getRevenueByMonth(invoices);
+        let annualRevenue = 0;
+
+        revenueByMonth.forEach(([month, revenue]) => {
+            const monthDate = new Date(month + '-01');
+            const start = new Date(monthDate.getFullYear(), startMonth - 1, 1);
+            const end = new Date(monthDate.getFullYear() + 1, endMonth - 1, 1);
+            if (monthDate >= start && monthDate < end) {
+                annualRevenue += revenue;
+            }
+        });
+
+        return annualRevenue;
+    };
+
     const getChartData = () => {
         const revenueByMonth = getRevenueByMonth(invoices);
         const estimatedRevenueByMonth = getEstimatedRevenueByMonth(estimatedInvoices);
@@ -140,6 +156,12 @@ function Revenue() {
                     <div className="bg-white p-8 rounded-lg shadow-lg">
                         <h3 className="text-2xl font-bold text-gray-800 mb-4">Évolution du chiffre d'affaires</h3>
                         <Bar data={getChartData()} options={{ scales: { y: { beginAtZero: true } } }} />
+                    </div>
+                    <div className="bg-white p-8 rounded-lg shadow-lg md:col-span-2">
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires annuel</h3>
+                        <div className="text-2xl text-green-600 font-extrabold">
+                            {`${getAnnualRevenue(invoices, 3, 3).toFixed(2)} €`}
+                        </div>
                     </div>
                 </div>
             )}
