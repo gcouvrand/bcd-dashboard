@@ -16,6 +16,20 @@ function Revenue() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const previousYearRevenue = {
+        '2023-04': 72817.29,
+        '2023-05': 94166.61,
+        '2023-06': 100607.28,
+        '2023-07': 54228.63,
+        '2023-08': 121503.56,
+        '2023-09': 70011.28,
+        '2023-10': 118639.63,
+        '2023-11': 106669.95,
+        '2023-12': 48849.40,
+        '2024-01': 73756.19,
+        '2024-02': 21476.45,
+    };
+
     useEffect(() => {
         fetchInvoices();
         fetchEstimatedInvoices();
@@ -75,6 +89,15 @@ function Revenue() {
             acc[month] = (acc[month] || 0) + (invoice.cartTotal || 0);
             return acc;
         }, {});
+
+        // Ajouter le chiffre en dur pour mars 2024
+        const hardcodedMarch2024Revenue = 3789.27; // Remplacer ce chiffre par le montant réel
+        if (revenueByMonth['2024-03']) {
+            revenueByMonth['2024-03'] += hardcodedMarch2024Revenue;
+        } else {
+            revenueByMonth['2024-03'] = hardcodedMarch2024Revenue;
+        }
+
         return Object.entries(revenueByMonth).sort(([a], [b]) => new Date(a) - new Date(b));
     };
 
@@ -104,6 +127,11 @@ function Revenue() {
             return data ? data[1] : null;
         });
 
+        const previousYearData = labels.map(label => {
+            const previousYearMonth = (parseInt(label.split('-')[0], 10) - 1) + '-' + label.split('-')[1];
+            return previousYearRevenue[previousYearMonth] || null;
+        });
+
         return {
             labels: labels.map(label => formatDate(label)),
             datasets: [
@@ -117,6 +145,13 @@ function Revenue() {
                 {
                     label: 'Chiffre d\'affaires estimé',
                     data: estimatedData,
+                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Chiffre d\'affaires précédent',
+                    data: previousYearData,
                     backgroundColor: 'rgba(255, 99, 132, 0.6)',
                     borderColor: 'rgba(255, 99, 132, 1)',
                     borderWidth: 1
