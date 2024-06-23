@@ -170,7 +170,7 @@ function Invoices() {
                                     <div className="border-t border-gray-200 mt-2 pt-4">
                                         <p className="text-gray-600 mb-2"><strong>Date:</strong> {new Date(invoice.usedDate).toLocaleDateString()}</p>
                                         <p className="text-gray-600 mb-2"><strong>Client:</strong> {invoice.prenom} {invoice.nom}</p>
-                                        <p className="text-gray-600 mb-2"><strong>Total payé:</strong> {invoice.cartTotal} €</p>
+                                        <p className="text-gray-600 mb-2"><strong>Total payé:</strong> {invoice.cartTotal.toFixed(2)} €</p>
                                     </div>
                                 </div>
                             ))
