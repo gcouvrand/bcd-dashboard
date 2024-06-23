@@ -12,6 +12,7 @@ Chart.register(...registerables);
 function Revenue() {
     const [invoices, setInvoices] = useState([]);
     const [estimatedInvoices, setEstimatedInvoices] = useState([]);
+    const [annualRevenue, setAnnualRevenue] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -26,6 +27,7 @@ function Revenue() {
         try {
             const response = await axios.get('https://bcd-backend-1ba2057cf6f6.herokuapp.com/completedSales');
             setInvoices(response.data);
+            calculateAnnualRevenue(response.data);
         } catch (error) {
             console.error('Error fetching invoices:', error);
             setError('Erreur lors de la récupération des factures.');
@@ -44,6 +46,21 @@ function Revenue() {
             setError('Erreur lors de la récupération des factures estimées.');
         }
         setLoading(false);
+    };
+
+    const calculateAnnualRevenue = (invoices) => {
+        const startDate = new Date(new Date().getFullYear(), 3, 1); // 1er avril de l'année en cours
+        const endDate = new Date(new Date().getFullYear() + 1, 2, 31); // 31 mars de l'année prochaine
+
+        const annualRevenue = invoices.reduce((acc, invoice) => {
+            const date = new Date(invoice.usedDate || invoice.createdAt);
+            if (date >= startDate && date <= endDate) {
+                acc += (invoice.cartTotal || 0);
+            }
+            return acc;
+        }, 0);
+
+        setAnnualRevenue(annualRevenue);
     };
 
     const formatDate = (dateString) => {
@@ -69,22 +86,6 @@ function Revenue() {
             return acc;
         }, {});
         return Object.entries(revenueByMonth).sort(([a], [b]) => new Date(a) - new Date(b));
-    };
-
-    const getAnnualRevenue = (invoices, startMonth, endMonth) => {
-        const revenueByMonth = getRevenueByMonth(invoices);
-        let annualRevenue = 0;
-
-        revenueByMonth.forEach(([month, revenue]) => {
-            const monthDate = new Date(month + '-01');
-            const start = new Date(monthDate.getFullYear(), startMonth - 1, 1);
-            const end = new Date(monthDate.getFullYear() + 1, endMonth - 1, 1);
-            if (monthDate >= start && monthDate < end) {
-                annualRevenue += revenue;
-            }
-        });
-
-        return annualRevenue;
     };
 
     const getChartData = () => {
@@ -157,14 +158,12 @@ function Revenue() {
                         <h3 className="text-2xl font-bold text-gray-800 mb-4">Évolution du chiffre d'affaires</h3>
                         <Bar data={getChartData()} options={{ scales: { y: { beginAtZero: true } } }} />
                     </div>
-                    <div className="bg-white p-8 rounded-lg shadow-lg md:col-span-2">
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires annuel</h3>
-                        <div className="text-2xl text-green-600 font-extrabold">
-                            {`${getAnnualRevenue(invoices, 3, 3).toFixed(2)} €`}
-                        </div>
-                    </div>
                 </div>
             )}
+            <div className="bg-white p-8 rounded-lg shadow-lg mt-6">
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires annuel</h3>
+                <p className="text-4xl text-green-600 font-extrabold">{annualRevenue.toFixed(2)} €</p>
+            </div>
         </div>
     );
 }
