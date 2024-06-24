@@ -44,33 +44,33 @@ const Clients = () => {
     password: "",
   });
 
-  useEffect(() => {
-    const fetchClients = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-            "https://bcd-backend-1ba2057cf6f6.herokuapp.com/clients",
-            {
-              params: {
-                page,
-                limit: 12,
-                search,
-              },
-            }
-        );
-        const formattedClients = response.data.clients.map((client) => ({
-          ...client,
-          prenom: formatName(client.prenom),
-          nom: formatName(client.nom),
-        }));
-        setClients(formattedClients);
-        setTotalPages(response.data.totalPages);
-      } catch (error) {
-        console.error("Error fetching clients:", error);
-      }
-      setLoading(false);
-    };
+  const fetchClients = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+          "https://bcd-backend-1ba2057cf6f6.herokuapp.com/clients",
+          {
+            params: {
+              page,
+              limit: 12,
+              search,
+            },
+          }
+      );
+      const formattedClients = response.data.clients.map((client) => ({
+        ...client,
+        prenom: formatName(client.prenom),
+        nom: formatName(client.nom),
+      }));
+      setClients(formattedClients);
+      setTotalPages(response.data.totalPages);
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    }
+    setLoading(false);
+  };
 
+  useEffect(() => {
     fetchClients();
   }, [page, search]);
 
@@ -134,6 +134,7 @@ const Clients = () => {
       zone: "",
       password: "",
     });
+    fetchClients(); // Ajoutez cette ligne pour rafraîchir la liste des clients
   };
 
   const formatDate = (dateString) => {
@@ -186,14 +187,23 @@ const Clients = () => {
           `https://bcd-backend-1ba2057cf6f6.herokuapp.com/create_client`,
           clientData
       );
-      setClients((prevClients) => [response.data.client, ...prevClients]);
-      setPage(1); // Reset to first page to show the new client
-      closeModal();
+
+      if (response.data.client) {
+        await fetchClients(); // Rafraîchir la liste des clients après ajout
+        closeModal(); // Fermer la modale après la mise à jour de la liste
+      } else {
+        throw new Error("Client data is undefined");
+      }
     } catch (error) {
       console.error("Error adding client:", error);
       setError("Failed to add client. Please try again later.");
     }
   };
+
+
+
+
+
 
   return (
       <div className="container mx-auto px-4 py-8">
