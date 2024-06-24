@@ -200,11 +200,6 @@ const Clients = () => {
     }
   };
 
-
-
-
-
-
   return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-5xl font-extrabold my-8 text-center text-gray-800">
@@ -223,65 +218,6 @@ const Clients = () => {
             onChange={handleSearchChange}
             className="p-4 border border-gray-300 rounded w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ml-4"
         />
-          <div className="flex justify-between items-center my-6">
-            <button
-                onClick={() => handlePageChange(page - 1)}
-                disabled={page === 1}
-                className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-            >
-              Précédent
-            </button>
-            <span className="text-gray-700 text-lg">
-            Page {page} sur {totalPages}
-          </span>
-            <button
-                onClick={() => handlePageChange(page + 1)}
-                disabled={page === totalPages}
-                className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-            >
-              Suivant
-            </button>
-          </div>
-        <div className="flex justify-between items-center mb-6">
-
-        </div>
-        {loading ? (
-            <p className="text-center text-gray-500 text-lg">Chargement...</p>
-        ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {clients.map((client) => (
-                  <div
-                      key={client._id}
-                      className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 cursor-pointer"
-                      onClick={() => handleClientClick(client)}
-                  >
-                    <h2 className="text-2xl font-semibold capitalize mb-4 text-gray-800">
-                      {client.prenom} {client.nom}
-                    </h2>
-                    <div className="flex items-center mb-3 text-gray-600">
-                      <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-2"/>
-                      <p>{client.email}</p>
-                    </div>
-                    <div className="flex items-center mb-3 text-gray-600">
-                      <PhoneIcon className="h-5 w-5 text-gray-400 mr-2"/>
-                      <p>{client.telephone}</p>
-                    </div>
-                    <div className="flex items-start text-gray-600 mb-1">
-                      <MapPinIcon className="h-5 w-5 text-gray-400 mr-2"/>
-                      <div>
-                        <p>{client.adresse}</p>
-                        <p>{client.codePostal}</p>
-                        <p>{client.ville}</p>
-                      </div>
-                    </div>
-                    <p className="text-gray-600">
-                      <strong>Compte créé le:</strong>{" "}
-                      {formatDate(client.creation_date)}
-                    </p>
-                  </div>
-              ))}
-            </div>
-        )}
         <div className="flex justify-between items-center my-6">
           <button
               onClick={() => handlePageChange(page - 1)}
@@ -301,6 +237,49 @@ const Clients = () => {
             Suivant
           </button>
         </div>
+        {loading ? (
+            <p className="text-center text-gray-500 text-lg">Chargement...</p>
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {clients.map((client) => (
+                  <div
+                      key={client._id}
+                      className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 cursor-pointer"
+                      onClick={() => handleClientClick(client)}
+                  >
+                    <h2 className="text-2xl font-semibold capitalize mb-4 text-gray-800">
+                      {client.prenom} {client.nom}
+                    </h2>
+                    <div className="flex items-center mb-3 text-gray-600">
+                      <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-2" />
+                      <p>{client.email}</p>
+                    </div>
+                    <div className="flex items-center mb-3 text-gray-600">
+                      <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
+                      <p>{client.telephone}</p>
+                    </div>
+                    {client.secondTelephone && (
+                        <div className="flex items-center mb-3 text-gray-600">
+                          <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
+                          <p>{client.secondTelephone}</p>
+                        </div>
+                    )}
+                    <div className="flex items-start text-gray-600 mb-1">
+                      <MapPinIcon className="h-5 w-5 text-gray-400 mr-2" />
+                      <div>
+                        <p>{client.adresse}</p>
+                        <p>{client.codePostal}</p>
+                        <p>{client.ville}</p>
+                      </div>
+                    </div>
+                    <p className="text-gray-600">
+                      <strong>Compte créé le:</strong>{" "}
+                      {formatDate(client.creation_date)}
+                    </p>
+                  </div>
+              ))}
+            </div>
+        )}
         <Transition show={!!selectedClient || isAddingClient} as={Fragment}>
           <Dialog
               as="div"
@@ -308,24 +287,25 @@ const Clients = () => {
               onClose={closeModal}
           >
             <div className="min-h-screen px-4 text-center">
-              <div className="fixed inset-0 bg-black bg-opacity-50"/>
+              <div className="fixed inset-0 bg-black bg-opacity-50" />
               <span
                   className="inline-block h-screen align-middle"
                   aria-hidden="true"
               >
               &#8203;
             </span>
-              <div
-                  className="inline-block w-full max-w-2xl p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+              <div className="inline-block w-full max-w-2xl p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-3xl font-bold text-gray-800">
-                    {isAddingClient ? "Ajouter un client" : `${selectedClient?.prenom} ${selectedClient?.nom}`}
+                    {isAddingClient
+                        ? "Ajouter un client"
+                        : `${selectedClient?.prenom} ${selectedClient?.nom}`}
                   </h2>
                   <button
                       onClick={closeModal}
                       className="text-gray-500 hover:text-gray-700"
                   >
-                    <XMarkIcon className="h-8 w-8"/>
+                    <XMarkIcon className="h-8 w-8" />
                   </button>
                 </div>
                 {isEditing || isAddingClient ? (
@@ -499,19 +479,30 @@ const Clients = () => {
                 ) : (
                     <div className="space-y-4 text-gray-700">
                       <div className="flex items-center">
-                        <EnvelopeIcon className="h-6 w-6 text-gray-400 mr-2"/>
-                        <a href={`mailto:${selectedClient?.email}`} className="hover:underline">
+                        <EnvelopeIcon className="h-6 w-6 text-gray-400 mr-2" />
+                        <a
+                            href={`mailto:${selectedClient?.email}`}
+                            className="hover:underline"
+                        >
                           {selectedClient?.email}
                         </a>
                       </div>
                       <div className="flex items-center">
-                        <PhoneIcon className="h-6 w-6 text-gray-400 mr-2"/>
+                        <PhoneIcon className="h-6 w-6 text-gray-400 mr-2" />
                         <a href={`tel:${selectedClient?.telephone}`} className="hover:underline">
                           {selectedClient?.telephone}
                         </a>
                       </div>
+                      {selectedClient?.secondTelephone && (
+                          <div className="flex items-center mb-3 text-gray-600">
+                            <PhoneIcon className="h-6 w-6 text-gray-400 mr-2"/>
+                            <a href={`tel:${selectedClient.secondTelephone}`} className="hover:underline">
+                              {selectedClient.secondTelephone}`
+                            </a>
+                          </div>
+                        )}
                       <div className="flex items-start">
-                        <MapPinIcon className="h-6 w-6 text-gray-400 mr-2"/>
+                      <MapPinIcon className="h-6 w-6 text-gray-400 mr-2" />
                         <div>
                           <p>{selectedClient?.adresse}</p>
                           <p>{selectedClient?.codePostal}</p>
@@ -524,7 +515,7 @@ const Clients = () => {
                             <h3 className="text-2xl font-semibold mt-6 text-blue-500">
                               Commandes
                             </h3>
-                            <hr className="my-4 border-blue-200"/>
+                            <hr className="my-4 border-blue-200" />
                             {orders.map((order, index) => (
                                 <div
                                     key={index}
@@ -539,8 +530,7 @@ const Clients = () => {
                                     ))}
                                   </ul>
                                   <p>
-                                    <strong>Frais de livraison :</strong>{" "}
-                                    {order.deliveryFee}€
+                                    <strong>Frais de livraison :</strong> {order.deliveryFee}€
                                   </p>
                                   <p>
                                     <strong>Remise :</strong> {order.discount}€
@@ -565,7 +555,7 @@ const Clients = () => {
                             <h3 className="text-2xl font-semibold mt-6 text-teal-500">
                               Ramonages
                             </h3>
-                            <hr className="my-4 border-teal-200"/>
+                            <hr className="my-4 border-teal-200" />
                             {ramonages.map((ramonage, index) => (
                                 <div
                                     key={index}
@@ -580,15 +570,13 @@ const Clients = () => {
                                     ))}
                                   </ul>
                                   <p>
-                                    <strong>Frais de livraison :</strong>{" "}
-                                    {ramonage.deliveryFee}€
+                                    <strong>Frais de livraison :</strong> {ramonage.deliveryFee}€
                                   </p>
                                   <p>
                                     <strong>Remise :</strong> {ramonage.ramonageDiscount}€
                                   </p>
                                   <p>
-                                    <strong>Total du panier :</strong>{" "}
-                                    {ramonage.cartTotal}€
+                                    <strong>Total du panier :</strong> {ramonage.cartTotal}€
                                   </p>
                                   <p>
                                     <strong>Date de livraison :</strong>{" "}
@@ -607,15 +595,14 @@ const Clients = () => {
                             <h3 className="text-2xl font-semibold mt-6 text-green-500">
                               Livraisons terminées
                             </h3>
-                            <hr className="my-4 border-green-200"/>
+                            <hr className="my-4 border-green-200" />
                             {completedDeliveries.map((delivery, index) => (
                                 <div
                                     key={index}
                                     className="bg-green-50 p-4 rounded-lg shadow-sm my-4"
                                 >
                                   <p>
-                                    <strong>Numéro de facture :</strong>{" "}
-                                    {delivery.invoiceNumber}
+                                    <strong>Numéro de facture :</strong> {delivery.invoiceNumber}
                                   </p>
                                   <p>
                                     <strong>Date :</strong>{" "}
@@ -638,19 +625,17 @@ const Clients = () => {
                             <h3 className="text-2xl font-semibold mt-6 text-red-500">
                               Ramonages terminées
                             </h3>
-                            <hr className="my-4 border-red-200"/>
+                            <hr className="my-4 border-red-200" />
                             {completedSweepings.map((sweeping, index) => (
                                 <div
                                     key={index}
                                     className="bg-red-50 p-4 rounded-lg shadow-sm my-4"
                                 >
                                   <p>
-                                    <strong>Numéro de facture :</strong>{" "}
-                                    {sweeping.invoiceNumber}
+                                    <strong>Numéro de facture :</strong> {sweeping.invoiceNumber}
                                   </p>
                                   <p>
-                                    <strong>Date :</strong>{" "}
-                                    {formatDate(sweeping.date || sweeping.createdAt)}
+                                    <strong>Date :</strong> {formatDate(sweeping.date || sweeping.createdAt)}
                                   </p>
                                   <button
                                       onClick={() =>
@@ -669,15 +654,14 @@ const Clients = () => {
                             <h3 className="text-2xl font-semibold mt-6 text-purple-500">
                               Ventes terminées
                             </h3>
-                            <hr className="my-4 border-purple-200"/>
+                            <hr className="my-4 border-purple-200" />
                             {completedSales.map((sale, index) => (
                                 <div
                                     key={index}
                                     className="bg-purple-50 p-4 rounded-lg shadow-sm my-4"
                                 >
                                   <p>
-                                    <strong>Numéro de facture :</strong>{" "}
-                                    {sale.invoiceNumber}
+                                    <strong>Numéro de facture :</strong> {sale.invoiceNumber}
                                   </p>
                                   <p>
                                     <strong>Date :</strong> {formatDate(sale.createdAt)}
@@ -700,14 +684,14 @@ const Clients = () => {
                               setClientData(selectedClient);
                             }}
                         >
-                          <PencilIcon className="h-5 w-5 mr-2"/>
+                          <PencilIcon className="h-5 w-5 mr-2" />
                           Modifier
                         </button>
                         <button
                             onClick={() => setConfirmDelete(true)}
                             className="flex items-center px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
                         >
-                          <TrashIcon className="h-5 w-5 mr-2"/>
+                          <TrashIcon className="h-5 w-5 mr-2" />
                           Supprimer
                         </button>
                       </div>
@@ -718,15 +702,14 @@ const Clients = () => {
                             onClose={() => setConfirmDelete(false)}
                         >
                           <div className="min-h-screen px-4 text-center">
-                            <div className="fixed inset-0 bg-black bg-opacity-50"/>
+                            <div className="fixed inset-0 bg-black bg-opacity-50" />
                             <span
                                 className="inline-block h-screen align-middle"
                                 aria-hidden="true"
                             >
                           &#8203;
                         </span>
-                            <div
-                                className="inline-block w-full max-w-md p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
+                            <div className="inline-block w-full max-w-md p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-lg">
                               <Dialog.Title
                                   as="h3"
                                   className="text-lg font-medium leading-6 text-gray-900"

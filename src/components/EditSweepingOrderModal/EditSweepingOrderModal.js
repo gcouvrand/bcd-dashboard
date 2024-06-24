@@ -31,7 +31,8 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
             codePostal: '',
             ville: '',
             email: '',
-            telephone: ''
+            telephone: '',
+            secondTelephone: ''  // Ajout du champ pour le téléphone supplémentaire
         }
     });
 
@@ -53,7 +54,8 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
                     codePostal: order.userInfo.codePostal || '',
                     ville: order.userInfo.ville || '',
                     email: order.userInfo.email || '',
-                    telephone: order.userInfo.telephone || ''
+                    telephone: order.userInfo.telephone || '',
+                    secondTelephone: order.userInfo.secondTelephone || ''  // Ajout du champ pour le téléphone supplémentaire
                 }
             });
         } else if (isAddingOrder) {
@@ -71,11 +73,12 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
                     codePostal: '',
                     ville: '',
                     email: '',
-                    telephone: ''
+                    telephone: '',
+                    secondTelephone: ''  // Ajout du champ pour le téléphone supplémentaire
                 }
             });
         }
-    }, [order, isAddingOrder, initialTime]);
+    }, [order, initialDate, initialTime, isAddingOrder]);
 
     const handleInputChange = (e, field) => {
         setEditedOrder({ ...editedOrder, [field]: e.target.value });
@@ -155,17 +158,6 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
             return;
         }
 
-        const formattedOrderUpdate = {
-            ...editedOrder,
-            deliverySlot: {
-                date: utcDate.toISOString()
-            },
-            cartItems: editedOrder.cartItems.map(({ id, city, ...rest }) => rest),
-            deliveryFee: parseFloat(editedOrder.deliveryFee) || 0,
-            discount: parseFloat(editedOrder.discount) || 0,
-            cartTotal: calculateTotal(editedOrder.cartItems, editedOrder.deliveryFee, editedOrder.discount)
-        };
-
         const formattedOrder = {
             ...editedOrder,
             ramonageSlot: {
@@ -177,13 +169,12 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
             cartTotal: calculateTotal(editedOrder.cartItems, editedOrder.deliveryFee, editedOrder.discount)
         };
 
-
         try {
             let response;
             if (isAddingOrder) {
                 response = await axios.post(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/confirm_order`, formattedOrder);
             } else {
-                response = await axios.put(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/ramonages/${order._id}`, formattedOrderUpdate);
+                response = await axios.put(`https://bcd-backend-1ba2057cf6f6.herokuapp.com/ramonages/${order._id}`, formattedOrder);
             }
 
             if (response.status === 200) {
@@ -227,11 +218,11 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
     };
 
     const CustomInput = forwardRef(({ value, onClick }, ref) => (
-        <input 
-            type="text" 
-            value={value} 
-            onClick={onClick} 
-            ref={ref} 
+        <input
+            type="text"
+            value={value}
+            onClick={onClick}
+            ref={ref}
             className="w-full p-2 bg-gray-800 text-white rounded"
             readOnly
         />
@@ -246,7 +237,7 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
                     <div>
                         <h5 className="text-lg font-semibold">Informations du client</h5>
                         <div className="space-y-2">
-                            {['nom', 'prenom', 'adresse', 'codePostal', 'ville', 'email', 'telephone'].map((field) => (
+                            {['nom', 'prenom', 'adresse', 'codePostal', 'ville', 'email', 'telephone', 'secondTelephone'].map((field) => (
                                 <div key={field}>
                                     <label className="block text-sm font-medium text-gray-300 capitalize">{field}</label>
                                     <input

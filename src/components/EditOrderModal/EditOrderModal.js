@@ -31,7 +31,8 @@ const EditOrderModal = ({ order, onClose, onSave, isAddingOrder, initialDate, in
             codePostal: '',
             ville: '',
             email: '',
-            telephone: ''
+            telephone: '',
+            secondTelephone: ''  // Ajout du champ pour le téléphone supplémentaire
         }
     });
 
@@ -53,7 +54,8 @@ const EditOrderModal = ({ order, onClose, onSave, isAddingOrder, initialDate, in
                     codePostal: order.userInfo.codePostal || '',
                     ville: order.userInfo.ville || '',
                     email: order.userInfo.email || '',
-                    telephone: order.userInfo.telephone || ''
+                    telephone: order.userInfo.telephone || '',
+                    secondTelephone: order.userInfo.secondTelephone || ''  // Ajout du champ pour le téléphone supplémentaire
                 }
             });
         } else if (isAddingOrder) {
@@ -71,7 +73,8 @@ const EditOrderModal = ({ order, onClose, onSave, isAddingOrder, initialDate, in
                     codePostal: '',
                     ville: '',
                     email: '',
-                    telephone: ''
+                    telephone: '',
+                    secondTelephone: ''  // Ajout du champ pour le téléphone supplémentaire
                 }
             });
         }
@@ -215,11 +218,11 @@ const EditOrderModal = ({ order, onClose, onSave, isAddingOrder, initialDate, in
     };
 
     const CustomInput = forwardRef(({ value, onClick }, ref) => (
-        <input 
-            type="text" 
-            value={value} 
-            onClick={onClick} 
-            ref={ref} 
+        <input
+            type="text"
+            value={value}
+            onClick={onClick}
+            ref={ref}
             className="w-full p-2 bg-gray-800 text-white rounded"
             readOnly
         />
@@ -234,7 +237,7 @@ const EditOrderModal = ({ order, onClose, onSave, isAddingOrder, initialDate, in
                     <div>
                         <h5 className="text-lg font-semibold">Informations du client</h5>
                         <div className="space-y-2">
-                            {['nom', 'prenom', 'adresse', 'codePostal', 'ville', 'email', 'telephone'].map((field) => (
+                            {['nom', 'prenom', 'adresse', 'codePostal', 'ville', 'email', 'telephone', 'secondTelephone'].map((field) => (
                                 <div key={field}>
                                     <label className="block text-sm font-medium text-gray-300 capitalize">{field}</label>
                                     <input
@@ -376,4 +379,3 @@ const EditOrderModal = ({ order, onClose, onSave, isAddingOrder, initialDate, in
 };
 
 export default EditOrderModal;
-
