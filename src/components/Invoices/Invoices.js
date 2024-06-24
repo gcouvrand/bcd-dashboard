@@ -75,7 +75,7 @@ function Invoices() {
 
     const openEmailClient = (invoice) => {
         const subject = `Votre facture ${invoice.invoiceNumber}`;
-        const body = `Bonjour ${invoice.prenom} ${invoice.nom},\n\nVeuillez trouver ci-joint votre facture.\n\nLien de la facture : ${invoice.invoiceURL}\n\nCordialement,\nVotre entreprise`;
+        const body = `Bonjour ${invoice.prenom} ${invoice.nom},\n\nVeuillez trouver ci-joint votre facture.\n\nLien de la facture : ${invoice.invoiceURL}\n\nCordialement,\nL'équipe BCD`;
         const mailtoLink = `mailto:${invoice.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
         window.location.href = mailtoLink;
