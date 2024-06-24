@@ -441,18 +441,20 @@ const Clients = () => {
                             className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
-                      <div>
-                        <label className="block text-gray-700 font-semibold mb-1">
-                          Mot de passe
-                        </label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={clientData.password}
-                            onChange={handleChange}
-                            className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
+                      {isAddingClient && (
+                          <div>
+                            <label className="block text-gray-700 font-semibold mb-1">
+                              Mot de passe
+                            </label>
+                            <input
+                                type="password"
+                                name="password"
+                                value={clientData.password}
+                                onChange={handleChange}
+                                className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                      )}
                       <div className="flex justify-end space-x-4 mt-4">
                         <button
                             onClick={() => {
@@ -500,9 +502,9 @@ const Clients = () => {
                               {selectedClient.secondTelephone}`
                             </a>
                           </div>
-                        )}
+                      )}
                       <div className="flex items-start">
-                      <MapPinIcon className="h-6 w-6 text-gray-400 mr-2" />
+                        <MapPinIcon className="h-6 w-6 text-gray-400 mr-2" />
                         <div>
                           <p>{selectedClient?.adresse}</p>
                           <p>{selectedClient?.codePostal}</p>
