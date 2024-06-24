@@ -41,6 +41,7 @@ const Clients = () => {
     codePostal: "",
     ville: "",
     zone: "",
+    password: "",
   });
 
   useEffect(() => {
@@ -131,6 +132,7 @@ const Clients = () => {
       codePostal: "",
       ville: "",
       zone: "",
+      password: "",
     });
   };
 
@@ -184,14 +186,8 @@ const Clients = () => {
           `https://bcd-backend-1ba2057cf6f6.herokuapp.com/create_client`,
           clientData
       );
-      const newClient = {
-        ...clientData,
-        _id: response.data.clientId, // Assuming the API returns the new client's ID
-        prenom: formatName(clientData.prenom),
-        nom: formatName(clientData.nom),
-        creation_date: new Date().toISOString(), // Assuming the current date as creation date
-      };
-      setClients((prevClients) => [newClient, ...prevClients]); // Add new client at the beginning of the list
+      setClients((prevClients) => [response.data.client, ...prevClients]);
+      setPage(1); // Reset to first page to show the new client
       closeModal();
     } catch (error) {
       console.error("Error adding client:", error);
@@ -215,32 +211,34 @@ const Clients = () => {
             placeholder="Rechercher des clients..."
             value={search}
             onChange={handleSearchChange}
-            className="p-4 mb-4 border border-gray-300 rounded w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ml-4"
+            className="p-4 border border-gray-300 rounded w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ml-4"
         />
-        <div className="flex justify-between items-center mb-6">
-          <button
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1}
-              className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-          >
-            Précédent
-          </button>
-          <span className="text-gray-700 text-lg">
+          <div className="flex justify-between items-center my-6">
+            <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1}
+                className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            >
+              Précédent
+            </button>
+            <span className="text-gray-700 text-lg">
             Page {page} sur {totalPages}
           </span>
-          <button
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === totalPages}
-              className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-          >
-            Suivant
-          </button>
-        </div>
+            <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages}
+                className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            >
+              Suivant
+            </button>
+          </div>
+        <div className="flex justify-between items-center mb-6">
 
+        </div>
         {loading ? (
             <p className="text-center text-gray-500 text-lg">Chargement...</p>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {clients.map((client) => (
                   <div
                       key={client._id}
@@ -283,8 +281,8 @@ const Clients = () => {
             Précédent
           </button>
           <span className="text-gray-700 text-lg">
-            Page {page} sur {totalPages}
-          </span>
+          Page {page} sur {totalPages}
+        </span>
           <button
               onClick={() => handlePageChange(page + 1)}
               disabled={page === totalPages}
@@ -449,6 +447,18 @@ const Clients = () => {
                             type="text"
                             name="zone"
                             value={clientData.zone}
+                            onChange={handleChange}
+                            className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 font-semibold mb-1">
+                          Mot de passe
+                        </label>
+                        <input
+                            type="password"
+                            name="password"
+                            value={clientData.password}
                             onChange={handleChange}
                             className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
