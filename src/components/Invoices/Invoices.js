@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import 'tailwindcss/tailwind.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt, faTimes, faSearch, faFileInvoice } from '@fortawesome/free-solid-svg-icons';
+import { faCalendarAlt, faTimes, faSearch, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 
 function Invoices() {
     const [invoices, setInvoices] = useState([]);
@@ -11,7 +11,7 @@ function Invoices() {
     const [searchText, setSearchText] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [filter, setFilter] = useState('all'); // État pour gérer le filtre
+    const [filter, setFilter] = useState('all');
 
     const monthInputRef = useRef(null);
     const dayInputRef = useRef(null);
@@ -26,10 +26,10 @@ function Invoices() {
         try {
             const response = await axios.get('https://bcd-backend-1ba2057cf6f6.herokuapp.com/completedSales', {
                 params: {
-                    month: month,
-                    day: day,
+                    month,
+                    day,
                     search: searchText,
-                    filter: filter,
+                    filter,
                 },
             });
             setInvoices(response.data);
@@ -71,6 +71,14 @@ function Invoices() {
 
     const handleFilterChange = (newFilter) => {
         setFilter(newFilter);
+    };
+
+    const openEmailClient = (invoice) => {
+        const subject = `Votre facture ${invoice.invoiceNumber}`;
+        const body = `Bonjour ${invoice.prenom} ${invoice.nom},\n\nVeuillez trouver ci-joint votre facture.\n\nLien de la facture : ${invoice.invoiceURL}\n\nCordialement,\nVotre entreprise`;
+        const mailtoLink = `mailto:${invoice.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        window.location.href = mailtoLink;
     };
 
     return (
@@ -148,10 +156,10 @@ function Invoices() {
                         </div>
                     </div>
                     <div className="flex justify-center mb-4">
-                        <button onClick={() => handleFilterChange('all')} className={`px-4 py-2 mr-2 rounded ${filter === 'all' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700'}`}>Tout</button>
-                        <button onClick={() => handleFilterChange('completedDeliveries')} className={`px-4 py-2 mr-2 rounded ${filter === 'completedDeliveries' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700'}`}>Livraisons</button>
-                        <button onClick={() => handleFilterChange('completedSweepings')} className={`px-4 py-2 mr-2 rounded ${filter === 'completedSweepings' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700'}`}>Ramonages</button>
-                        <button onClick={() => handleFilterChange('completedSales')} className={`px-4 py-2 rounded ${filter === 'completedSales' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700'}`}>Dépôts</button>
+                        <button onClick={() => handleFilterChange('all')} className={`px-4 py-2 mr-2 rounded ${filter === 'all' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700 border border-gray-300'}`}>Tout</button>
+                        <button onClick={() => handleFilterChange('completedDeliveries')} className={`px-4 py-2 mr-2 rounded ${filter === 'completedDeliveries' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700 border border-gray-300'}`}>Livraisons</button>
+                        <button onClick={() => handleFilterChange('completedSweepings')} className={`px-4 py-2 mr-2 rounded ${filter === 'completedSweepings' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700 border border-gray-300'}`}>Ramonages</button>
+                        <button onClick={() => handleFilterChange('completedSales')} className={`px-4 py-2 rounded ${filter === 'completedSales' ? 'bg-indigo-500 text-white' : 'bg-white text-gray-700 border border-gray-300'}`}>Dépôts</button>
                     </div>
                 </div>
                 {loading ? (
@@ -159,18 +167,33 @@ function Invoices() {
                 ) : error ? (
                     <p className="text-center text-red-500">{error}</p>
                 ) : (
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {invoices.length > 0 ? (
                             invoices.map((invoice, index) => (
                                 <div key={index} className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-xl font-bold text-gray-800">{invoice.invoiceNumber}</h3>
+                                    <div className="mb-4">
+                                        <h3 className="text-xl font-bold text-green-500">{invoice.invoiceNumber}</h3>
                                         <a href={invoice.invoiceURL} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">Voir la facture</a>
                                     </div>
-                                    <div className="border-t border-gray-200 mt-2 pt-4">
+                                    <div className="border-t border-gray-200 mt-4 pt-4">
                                         <p className="text-gray-600 mb-2"><strong>Date:</strong> {new Date(invoice.usedDate).toLocaleDateString()}</p>
                                         <p className="text-gray-600 mb-2"><strong>Client:</strong> {invoice.prenom} {invoice.nom}</p>
                                         <p className="text-gray-600 mb-2"><strong>Total payé:</strong> {invoice.cartTotal.toFixed(2)} €</p>
+                                        <div className="text-gray-600 mb-2">
+                                            <strong>Moyens de paiement:</strong>
+                                            <ul className="list-disc ml-6">
+                                                {Object.entries(invoice.paymentMethods).map(([method, amount], idx) => (
+                                                    <li key={idx}>{method}: {amount} €</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                        <button
+                                            onClick={() => openEmailClient(invoice)}
+                                            className="mt-4 w-full flex items-center justify-center bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+                                        >
+                                            <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
+                                            Envoyer par mail
+                                        </button>
                                     </div>
                                 </div>
                             ))
