@@ -170,15 +170,28 @@ function Invoices() {
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {invoices.length > 0 ? (
                             invoices.map((invoice, index) => (
-                                <div key={index} className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                                <div key={index}
+                                     className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
+                                    <div className="flex -mb-4">
                                     <div className="mb-4">
                                         <h3 className="text-xl font-bold text-green-500">{invoice.invoiceNumber}</h3>
-                                        <a href={invoice.invoiceURL} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">Voir la facture</a>
+                                        <a href={invoice.invoiceURL} target="_blank" rel="noopener noreferrer"
+                                           className="text-indigo-600 hover:text-indigo-900">Voir la facture</a>
+                                    </div>
+                                    <button
+                                        onClick={() => openEmailClient(invoice)}
+                                        className="w-10 h-10 ml-16 mt-2 flex items-center justify-center bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition"
+                                    >
+                                        <FontAwesomeIcon icon={faEnvelope}/>
+                                    </button>
                                     </div>
                                     <div className="border-t border-gray-200 mt-4 pt-4">
-                                        <p className="text-gray-600 mb-2"><strong>Date:</strong> {new Date(invoice.usedDate).toLocaleDateString()}</p>
-                                        <p className="text-gray-600 mb-2"><strong>Client:</strong> {invoice.prenom} {invoice.nom}</p>
-                                        <p className="text-gray-600 mb-2"><strong>Total payé:</strong> {invoice.cartTotal.toFixed(2)} €</p>
+                                        <p className="text-gray-600 mb-2">
+                                            <strong>Date:</strong> {new Date(invoice.usedDate).toLocaleDateString()}</p>
+                                        <p className="text-gray-600 mb-2">
+                                            <strong>Client:</strong> {invoice.prenom} {invoice.nom}</p>
+                                        <p className="text-gray-600 mb-2"><strong>Total
+                                            payé:</strong> {invoice.cartTotal.toFixed(2)} €</p>
                                         <div className="text-gray-600 mb-2">
                                             <strong>Moyens de paiement:</strong>
                                             <ul className="list-disc ml-6">
@@ -187,13 +200,6 @@ function Invoices() {
                                                 ))}
                                             </ul>
                                         </div>
-                                        <button
-                                            onClick={() => openEmailClient(invoice)}
-                                            className="mt-4 w-full flex items-center justify-center bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
-                                        >
-                                            <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
-                                            Envoyer par mail
-                                        </button>
                                     </div>
                                 </div>
                             ))
