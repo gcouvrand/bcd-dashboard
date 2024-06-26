@@ -160,7 +160,7 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
 
         const formattedOrder = {
             ...editedOrder,
-            ramonageSlot: {
+            deliverySlot: {
                 date: utcDate.toISOString()
             },
             cartItems: editedOrder.cartItems.map(({ id, city, ...rest }) => rest),
