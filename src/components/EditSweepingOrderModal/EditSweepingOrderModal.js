@@ -22,7 +22,6 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
         date: initialDate || '',
         time: initialTime || '',
         deliveryFee: '',
-        discount: '',
         cartItems: [],
         userInfo: {
             nom: '',
@@ -165,7 +164,7 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
             },
             cartItems: editedOrder.cartItems.map(({ id, city, ...rest }) => rest),
             deliveryFee: parseFloat(editedOrder.deliveryFee) || 0,
-            discount: parseFloat(editedOrder.discount) || 0,
+            ramonageDiscount: parseFloat(editedOrder.discount) || 0,
             cartTotal: calculateTotal(editedOrder.cartItems, editedOrder.deliveryFee, editedOrder.discount)
         };
 

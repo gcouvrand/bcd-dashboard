@@ -42,6 +42,7 @@ const Clients = () => {
     ville: "",
     zone: "",
     password: "",
+    commentairesEntreprise: "",
   });
 
   const fetchClients = async () => {
@@ -133,6 +134,7 @@ const Clients = () => {
       ville: "",
       zone: "",
       password: "",
+      commentairesEntreprise: "",
     });
     fetchClients(); // Ajoutez cette ligne pour rafraîchir la liste des clients
   };
@@ -441,6 +443,18 @@ const Clients = () => {
                             className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
+                      <div>
+                        <label className="block text-gray-700 font-semibold mb-1">
+                          Commentaires de l'entreprise
+                        </label>
+                        <textarea
+                            name="commentairesEntreprise"
+                            value={clientData.commentairesEntreprise}
+                            onChange={handleChange}
+                            className="p-2 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows="4"
+                        />
+                      </div>
                       {isAddingClient && (
                           <div>
                             <label className="block text-gray-700 font-semibold mb-1">
@@ -499,7 +513,7 @@ const Clients = () => {
                           <div className="flex items-center mb-3 text-gray-600">
                             <PhoneIcon className="h-6 w-6 text-gray-400 mr-2"/>
                             <a href={`tel:${selectedClient.secondTelephone}`} className="hover:underline">
-                              {selectedClient.secondTelephone}`
+                              {selectedClient.secondTelephone}
                             </a>
                           </div>
                       )}
@@ -510,6 +524,22 @@ const Clients = () => {
                           <p>{selectedClient?.codePostal}</p>
                           <p>{selectedClient?.ville}</p>
                         </div>
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 font-semibold mb-1">
+                          Commentaires du client
+                        </label>
+                        <p className="bg-blue-50 p-4 rounded-lg shadow-sm my-4">
+                          {selectedClient?.commentairesClient || "Aucun commentaire"}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 font-semibold mb-1">
+                          Commentaires de l'entreprise
+                        </label>
+                        <p className="bg-blue-50 p-4 rounded-lg shadow-sm my-4">
+                          {selectedClient?.commentairesEntreprise || "Aucun commentaire"}
+                        </p>
                       </div>
                       {error && <p className="text-red-500">{error}</p>}
                       {orders.length > 0 && (
