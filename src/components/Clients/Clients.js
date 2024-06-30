@@ -19,6 +19,7 @@ const Clients = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalClients, setTotalClients] = useState(0);
   const [search, setSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState(null);
   const [orders, setOrders] = useState([]);
@@ -30,6 +31,7 @@ const Clients = () => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isAddingClient, setIsAddingClient] = useState(false);
+  const [currentSection, setCurrentSection] = useState("Tous les clients");
   const [clientData, setClientData] = useState({
     civilite: "Monsieur",
     prenom: "",
@@ -45,7 +47,7 @@ const Clients = () => {
     commentairesEntreprise: "",
   });
 
-  const fetchClients = async () => {
+  const fetchClients = async (page = 1) => {
     setLoading(true);
     try {
       const response = await axios.get(
@@ -65,24 +67,117 @@ const Clients = () => {
       }));
       setClients(formattedClients);
       setTotalPages(response.data.totalPages);
+      setTotalClients(response.data.totalClients);
+      setPage(page);
+      setCurrentSection("Tous les clients");
     } catch (error) {
       console.error("Error fetching clients:", error);
     }
     setLoading(false);
   };
 
+  const fetchClientsNoWoodOrders = async (page = 1) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+          "https://bcd-backend-1ba2057cf6f6.herokuapp.com/clients/no-wood-orders",
+          {
+            params: { page, limit: 12 },
+          }
+      );
+      const formattedClients = response.data.clients.map((client) => ({
+        ...client,
+        prenom: formatName(client.prenom),
+        nom: formatName(client.nom),
+      }));
+      setClients(formattedClients);
+      setTotalPages(Math.ceil(response.data.totalClients / 12));
+      setTotalClients(response.data.totalClients);
+      setPage(page);
+      setCurrentSection("Clients sans commande de bois");
+    } catch (error) {
+      console.error("Error fetching clients without wood orders:", error);
+    }
+    setLoading(false);
+  };
+
+  const fetchClientsNoSweepingOrders = async (page = 1) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+          "https://bcd-backend-1ba2057cf6f6.herokuapp.com/clients/no-sweeping-orders",
+          {
+            params: { page, limit: 12 },
+          }
+      );
+      const formattedClients = response.data.clients.map((client) => ({
+        ...client,
+        prenom: formatName(client.prenom),
+        nom: formatName(client.nom),
+      }));
+      setClients(formattedClients);
+      setTotalPages(Math.ceil(response.data.totalClients / 12));
+      setTotalClients(response.data.totalClients);
+      setPage(page);
+      setCurrentSection("Clients sans commande de ramonage");
+    } catch (error) {
+      console.error("Error fetching clients without sweeping orders:", error);
+    }
+    setLoading(false);
+  };
+
+  const fetchClientsNoOrders = async (page = 1) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+          "https://bcd-backend-1ba2057cf6f6.herokuapp.com/clients/no-orders",
+          {
+            params: { page, limit: 12 },
+          }
+      );
+      const formattedClients = response.data.clients.map((client) => ({
+        ...client,
+        prenom: formatName(client.prenom),
+        nom: formatName(client.nom),
+      }));
+      setClients(formattedClients);
+      setTotalPages(Math.ceil(response.data.totalClients / 12));
+      setTotalClients(response.data.totalClients);
+      setPage(page);
+      setCurrentSection("Clients sans aucune commande");
+    } catch (error) {
+      console.error("Error fetching clients without any orders:", error);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    fetchClients();
+    fetchClients(page);
   }, [page, search]);
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
     setPage(1);
+    fetchClients();
   };
 
   const handlePageChange = (newPage) => {
     if (newPage > 0 && newPage <= totalPages) {
       setPage(newPage);
+      switch (currentSection) {
+        case "Clients sans commande de bois":
+          fetchClientsNoWoodOrders(newPage);
+          break;
+        case "Clients sans commande de ramonage":
+          fetchClientsNoSweepingOrders(newPage);
+          break;
+        case "Clients sans aucune commande":
+          fetchClientsNoOrders(newPage);
+          break;
+        default:
+          fetchClients(newPage);
+          break;
+      }
     }
   };
 
@@ -136,8 +231,11 @@ const Clients = () => {
       password: "",
       commentairesEntreprise: "",
     });
-    fetchClients(); // Ajoutez cette ligne pour rafraîchir la liste des clients
+
+    // Ne pas appeler fetchClients() ici pour ne pas réinitialiser l'affichage
+    // fetchClients();
   };
+
 
   const formatDate = (dateString) => {
     return dayjs(dateString).format("dddd D MMMM YYYY, HH:mm:ss");
@@ -207,18 +305,47 @@ const Clients = () => {
         <h1 className="text-5xl font-extrabold my-8 text-center text-gray-800">
           Clients
         </h1>
-        <button
-            onClick={() => setIsAddingClient(true)}
-            className="p-3 mb-4 bg-black text-white rounded-lg hover:bg-gray-800 transition"
-        >
-          Ajouter un client
-        </button>
+        <div className="flex items-center mb-4">
+          <button
+              onClick={() => setIsAddingClient(true)}
+              className="p-3 mr-4 bg-black text-white rounded-lg hover:bg-gray-800 transition"
+          >
+            Ajouter un client
+          </button>
+          <button
+              onClick={() => fetchClients()}
+              className="p-3 mr-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          >
+            Tous les clients
+          </button>
+          <button
+              onClick={() => fetchClientsNoWoodOrders()}
+              className="p-3 mr-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          >
+            Clients sans commande de bois
+          </button>
+          <button
+              onClick={() => fetchClientsNoSweepingOrders()}
+              className="p-3 mr-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          >
+            Clients sans commande de ramonage
+          </button>
+          <button
+              onClick={() => fetchClientsNoOrders()}
+              className="p-3 mr-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          >
+            Clients sans aucune commande
+          </button>
+        </div>
+        <div className="mb-4 text-center font-semibold text-xl text-gray-600">
+          {currentSection} - {totalClients} clients
+        </div>
         <input
             type="text"
             placeholder="Rechercher des clients..."
             value={search}
             onChange={handleSearchChange}
-            className="p-4 border border-gray-300 rounded w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ml-4"
+            className="p-4 border border-gray-300 rounded w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <div className="flex justify-between items-center my-6">
           <button
@@ -242,44 +369,65 @@ const Clients = () => {
         {loading ? (
             <p className="text-center text-gray-500 text-lg">Chargement...</p>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {clients.map((client) => (
-                  <div
-                      key={client._id}
-                      className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 cursor-pointer"
-                      onClick={() => handleClientClick(client)}
-                  >
-                    <h2 className="text-2xl font-semibold capitalize mb-4 text-gray-800">
-                      {client.prenom} {client.nom}
-                    </h2>
-                    <div className="flex items-center mb-3 text-gray-600">
-                      <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-2" />
-                      <p>{client.email}</p>
-                    </div>
-                    <div className="flex items-center mb-3 text-gray-600">
-                      <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
-                      <p>{client.telephone}</p>
-                    </div>
-                    {client.secondTelephone && (
-                        <div className="flex items-center mb-3 text-gray-600">
-                          <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
-                          <p>{client.secondTelephone}</p>
-                        </div>
-                    )}
-                    <div className="flex items-start text-gray-600 mb-1">
-                      <MapPinIcon className="h-5 w-5 text-gray-400 mr-2" />
-                      <div>
-                        <p>{client.adresse}</p>
-                        <p>{client.codePostal}</p>
-                        <p>{client.ville}</p>
+            <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {clients.map((client) => (
+                    <div
+                        key={client._id}
+                        className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 cursor-pointer"
+                        onClick={() => handleClientClick(client)}
+                    >
+                      <h2 className="text-2xl font-semibold capitalize mb-4 text-gray-800">
+                        {client.prenom} {client.nom}
+                      </h2>
+                      <div className="flex items-center mb-3 text-gray-600">
+                        <EnvelopeIcon className="h-5 w-5 text-gray-400 mr-2" />
+                        <p>{client.email}</p>
                       </div>
+                      <div className="flex items-center mb-3 text-gray-600">
+                        <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
+                        <p>{client.telephone}</p>
+                      </div>
+                      {client.secondTelephone && (
+                          <div className="flex items-center mb-3 text-gray-600">
+                            <PhoneIcon className="h-5 w-5 text-gray-400 mr-2" />
+                            <p>{client.secondTelephone}</p>
+                          </div>
+                      )}
+                      <div className="flex items-start text-gray-600 mb-1">
+                        <MapPinIcon className="h-5 w-5 text-gray-400 mr-2" />
+                        <div>
+                          <p>{client.adresse}</p>
+                          <p>{client.codePostal}</p>
+                          <p>{client.ville}</p>
+                        </div>
+                      </div>
+                      <p className="text-gray-600">
+                        <strong>Compte créé le:</strong>{" "}
+                        {formatDate(client.creation_date)}
+                      </p>
                     </div>
-                    <p className="text-gray-600">
-                      <strong>Compte créé le:</strong>{" "}
-                      {formatDate(client.creation_date)}
-                    </p>
-                  </div>
-              ))}
+                ))}
+              </div>
+              <div className="flex justify-between items-center my-6">
+                <button
+                    onClick={() => handlePageChange(page - 1)}
+                    disabled={page === 1}
+                    className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                >
+                  Précédent
+                </button>
+                <span className="text-gray-700 text-lg">
+              Page {page} sur {totalPages}
+            </span>
+                <button
+                    onClick={() => handlePageChange(page + 1)}
+                    disabled={page === totalPages}
+                    className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                >
+                  Suivant
+                </button>
+              </div>
             </div>
         )}
         <Transition show={!!selectedClient || isAddingClient} as={Fragment}>
