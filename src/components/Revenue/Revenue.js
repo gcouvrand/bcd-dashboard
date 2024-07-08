@@ -28,6 +28,7 @@ function Revenue() {
         '2023-12': 48849.40,
         '2024-01': 73756.19,
         '2024-02': 21476.45,
+        '2024-03': 72817.29
     };
 
     useEffect(() => {
@@ -64,11 +65,11 @@ function Revenue() {
 
     const calculateAnnualRevenue = (invoices) => {
         const startDate = new Date(new Date().getFullYear(), 3, 1); // 1er avril de l'année en cours
-        const endDate = new Date(new Date().getFullYear() + 1, 2, 31); // 31 mars de l'année prochaine
+        const endDate = new Date(new Date().getFullYear() + 1, 2, 29); // 29 février de l'année prochaine
 
         const annualRevenue = invoices.reduce((acc, invoice) => {
             const date = new Date(invoice.usedDate || invoice.createdAt);
-            if (date >= startDate && date <= endDate) {
+            if (date >= startDate && date <= endDate && date.getMonth() !== 2) { // Exclure mars
                 acc += (invoice.cartTotal || 0);
             }
             return acc;
@@ -90,13 +91,8 @@ function Revenue() {
             return acc;
         }, {});
 
-        // Ajouter le chiffre en dur pour mars 2024
-        const hardcodedMarch2024Revenue = 3789.27; // Remplacer ce chiffre par le montant réel
-        if (revenueByMonth['2024-03']) {
-            revenueByMonth['2024-03'] += hardcodedMarch2024Revenue;
-        } else {
-            revenueByMonth['2024-03'] = hardcodedMarch2024Revenue;
-        }
+        // Exclure mars 2024
+        delete revenueByMonth['2024-03'];
 
         return Object.entries(revenueByMonth).sort(([a], [b]) => new Date(a) - new Date(b));
     };
@@ -105,9 +101,13 @@ function Revenue() {
         const revenueByMonth = invoices.reduce((acc, invoice) => {
             const date = new Date(invoice.deliverySlot.date);
             const month = format(date, 'yyyy-MM');
-            acc[month] = (acc[month] || 0) + (invoice.cartTotal || 0);
+            // Exclure le mois de mars 2024
+            if (month !== '2024-03') {
+                acc[month] = (acc[month] || 0) + (invoice.cartTotal || 0);
+            }
             return acc;
         }, {});
+
         return Object.entries(revenueByMonth).sort(([a], [b]) => new Date(a) - new Date(b));
     };
 
@@ -115,31 +115,37 @@ function Revenue() {
         const revenueByMonth = getRevenueByMonth(invoices);
         const estimatedRevenueByMonth = getEstimatedRevenueByMonth(estimatedInvoices);
 
-        const labels = [...new Set([...revenueByMonth.map(([month]) => month), ...estimatedRevenueByMonth.map(([month]) => month)])].sort((a, b) => new Date(a) - new Date(b));
+        // Liste des mois de l'année fiscale actuelle et précédente
+        const fiscalMonths = [
+            '2024-04', '2024-05', '2024-06', '2024-07', '2024-08', '2024-09',
+            '2024-10', '2024-11', '2024-12', '2025-01', '2025-02', '2025-03'
+        ];
 
-        const actualData = labels.map(label => {
-            const data = revenueByMonth.find(([month]) => month === label);
-            return data ? data[1] : null;
+        const labels = fiscalMonths.map(month => formatDate(month));
+
+        const actualData = fiscalMonths.map(month => {
+            const data = revenueByMonth.find(([m]) => m === month);
+            return data ? data[1] : 0;
         });
 
-        const estimatedData = labels.map(label => {
-            const data = estimatedRevenueByMonth.find(([month]) => month === label);
-            return data ? data[1] : null;
+        const estimatedData = fiscalMonths.map(month => {
+            const data = estimatedRevenueByMonth.find(([m]) => m === month);
+            return data ? data[1] : 0;
         });
 
-        const previousYearData = labels.map(label => {
-            const previousYearMonth = (parseInt(label.split('-')[0], 10) - 1) + '-' + label.split('-')[1];
-            return previousYearRevenue[previousYearMonth] || null;
+        const previousYearData = fiscalMonths.map(month => {
+            const previousYearMonth = (parseInt(month.split('-')[0], 10) - 1) + '-' + month.split('-')[1];
+            return previousYearRevenue[previousYearMonth] || 0;
         });
 
         return {
-            labels: labels.map(label => formatDate(label)),
+            labels: labels,
             datasets: [
                 {
-                    label: 'Chiffre d\'affaires',
+                    label: 'Chiffre d\'affaires réel',
                     data: actualData,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.6)', // Utiliser le même vert que dans l'encart
+                    borderColor: 'rgba(34, 197, 94, 1)',
                     borderWidth: 1
                 },
                 {
@@ -150,15 +156,82 @@ function Revenue() {
                     borderWidth: 1
                 },
                 {
-                    label: 'Chiffre d\'affaires précédent',
+                    label: 'Chiffre d\'affaires de l\'année précédente',
                     data: previousYearData,
-                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)', // Utiliser le même bleu que dans l'encart
+                    borderColor: 'rgba(59, 130, 246, 1)',
                     borderWidth: 1
                 }
             ]
         };
     };
+
+
+    const getYearToDateRevenue = () => {
+        const currentDate = new Date();
+        const startDate = new Date(currentDate.getFullYear(), 3, 1); // 1er avril de l'année en cours
+
+        // Calculer le CA réel des mois précédents terminés (hors mois en cours)
+        const realRevenue = invoices.reduce((acc, invoice) => {
+            const date = new Date(invoice.usedDate || invoice.createdAt);
+            if (date >= startDate && date < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1) && !(date.getFullYear() === 2024 && date.getMonth() === 2)) {
+                acc += (invoice.cartTotal || 0);
+            }
+            return acc;
+        }, 0);
+
+        // Calculer le CA estimé pour le mois en cours
+        const estimatedCurrentMonthRevenue = estimatedInvoices.reduce((acc, invoice) => {
+            const date = new Date(invoice.deliverySlot.date);
+            if (date.getFullYear() === currentDate.getFullYear() && date.getMonth() === currentDate.getMonth()) {
+                acc += (invoice.cartTotal || 0);
+            }
+            return acc;
+        }, 0);
+
+        // Calculer le CA de l'année précédente à la même date
+        const previousYearToDateRevenue = Object.entries(previousYearRevenue).reduce((acc, [month, revenue]) => {
+            const date = new Date(month + '-01');
+            if (date >= new Date(currentDate.getFullYear() - 1, 3, 1) && date <= new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), currentDate.getDate())) {
+                acc += revenue;
+            }
+            return acc;
+        }, 0);
+
+        return {
+            yearToDateRevenue: realRevenue + estimatedCurrentMonthRevenue,
+            previousYearToDateRevenue,
+            estimatedCurrentMonthRevenue // Ajouter le CA estimé pour le mois en cours
+        };
+    };
+
+    const { yearToDateRevenue, previousYearToDateRevenue, estimatedCurrentMonthRevenue } = getYearToDateRevenue();
+
+    const calculateDifference = (current, previous) => {
+        const difference = current - previous;
+        const percentage = (difference / previous) * 100;
+        return { difference, percentage };
+    };
+
+    const calculateMonthlyDifference = (current, estimated, previous) => {
+        const difference = estimated - previous;
+        const percentage = (difference / previous) * 100;
+        return { difference, percentage };
+    };
+
+    const { difference, percentage } = calculateDifference(yearToDateRevenue, previousYearToDateRevenue);
+
+    const getMonthlyComparisons = () => {
+        return getRevenueByMonth(invoices).map(([month, revenue]) => {
+            const previousYearMonth = (parseInt(month.split('-')[0], 10) - 1) + '-' + month.split('-')[1];
+            const previousYearRevenueMonth = previousYearRevenue[previousYearMonth] || 0;
+            const estimatedRevenue = month === currentMonth ? estimatedCurrentMonthRevenue : revenue;
+            const { difference, percentage } = month === currentMonth ? calculateMonthlyDifference(revenue, estimatedRevenue, previousYearRevenueMonth) : calculateMonthlyDifference(revenue, revenue, previousYearRevenueMonth);
+            return { month, revenue, previousYearRevenueMonth, estimatedRevenue, difference, percentage };
+        });
+    };
+
+    const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
     return (
         <div className="p-6 bg-gradient-to-r from-blue-100 to-indigo-100 min-h-screen">
@@ -168,37 +241,89 @@ function Revenue() {
             ) : error ? (
                 <p className="text-center text-red-500">{error}</p>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white p-8 rounded-lg shadow-lg">
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires par mois</h3>
-                        <ul>
-                            {getRevenueByMonth(invoices).map(([month, revenue]) => (
-                                <li key={month} className="flex justify-between items-center py-2 border-b border-gray-200">
-                                    <span className="text-gray-800 font-medium">{formatDate(month)}</span>
-                                    <span className="text-green-600 font-bold">{revenue.toFixed(2)} €</span>
-                                </li>
-                            ))}
-                        </ul>
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4 mt-6">Chiffre d'affaires estimé par mois</h3>
-                        <ul>
-                            {getEstimatedRevenueByMonth(estimatedInvoices).map(([month, revenue]) => (
-                                <li key={month} className="flex justify-between items-center py-2 border-b border-gray-200">
-                                    <span className="text-gray-800 font-medium">{formatDate(month)}</span>
-                                    <span className="text-red-600 font-bold">{revenue.toFixed(2)} €</span>
-                                </li>
-                            ))}
-                        </ul>
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div className="bg-white p-8 rounded-lg shadow-lg">
+                            <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires de l'année précédente</h3>
+                            <ul>
+                                {Object.entries(previousYearRevenue).map(([month, revenue]) => (
+                                    <li key={month} className="flex justify-between items-center py-2 border-b border-gray-200">
+                                        <span className="text-gray-800 font-medium">{formatDate(month)}</span>
+                                        <span className="text-blue-600 font-bold">{revenue.toFixed(2)} €</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="bg-white p-8 rounded-lg shadow-lg">
+                            <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires de l'année en cours</h3>
+                            <ul>
+                                {getMonthlyComparisons().map(({ month, revenue, previousYearRevenueMonth, difference, percentage }) => (
+                                    <li key={month} className="flex flex-col py-2 border-b border-gray-200">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-800 font-medium">{formatDate(month)}</span>
+                                            <span className="text-green-600 font-bold">{revenue.toFixed(2)} €</span>
+                                        </div>
+                                        {month !== currentMonth && (
+                                            <div className="text-sm text-gray-600">
+                                                {difference >= 0 ? (
+                                                    <span className="text-green-600">+ {difference.toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                ) : (
+                                                    <span className="text-red-600">- {Math.abs(difference).toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {month === currentMonth && (
+                                            <>
+                                                <div className="text-sm text-gray-600">
+                                                    <span className="text-purple-600">Estimé: {estimatedCurrentMonthRevenue.toFixed(2)} €</span>
+                                                </div>
+                                                <div className="text-sm text-gray-600">
+                                                    {difference >= 0 ? (
+                                                        <span className="text-green-600">+ {difference.toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                    ) : (
+                                                        <span className="text-red-600">- {Math.abs(difference).toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div className="bg-white p-8 rounded-lg shadow-lg">
+                            <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires estimé</h3>
+                            <ul>
+                                {getEstimatedRevenueByMonth(estimatedInvoices).map(([month, revenue]) => (
+                                    <li key={month} className="flex justify-between items-center py-2 border-b border-gray-200">
+                                        <span className="text-gray-800 font-medium">{formatDate(month)}</span>
+                                        <span className="text-purple-600 font-bold">{revenue.toFixed(2)} €</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     </div>
-                    <div className="bg-white p-8 rounded-lg shadow-lg">
+                    <div className="bg-white p-8 rounded-lg shadow-lg mb-6">
                         <h3 className="text-2xl font-bold text-gray-800 mb-4">Évolution du chiffre d'affaires</h3>
                         <Bar data={getChartData()} options={{ scales: { y: { beginAtZero: true } } }} />
                     </div>
-                </div>
+                    <div className="bg-white p-8 rounded-lg shadow-lg">
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires annuel (du 1er avril jusqu'aujourd'hui)</h3>
+                        <div className="text-4xl text-green-600 font-extrabold mb-4">{annualRevenue.toFixed(2)} €</div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-4">Chiffre d'affaires estimé (du 1er avril jusqu'à la fin du mois)</h3>
+                        <div className="text-4xl text-purple-600 font-extrabold mb-4">{yearToDateRevenue.toFixed(2)} €</div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-4">Chiffre d'affaires de l'année précédente (du 1er avril de l'année précédente jusqu'à la fin du mois en cours de l'année précédente)</h3>
+                        <div className="text-4xl text-blue-600 font-extrabold">{previousYearToDateRevenue.toFixed(2)} €</div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-4">Comparatif avec l'année précédente</h3>
+                        <div className="text-4xl text-gray-800 font-extrabold">
+                            {difference >= 0 ? (
+                                <span className="text-green-600">+ {difference.toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                            ) : (
+                                <span className="text-red-600">- {Math.abs(difference).toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                            )}
+                        </div>
+                    </div>
+                </>
             )}
-            <div className="bg-white p-8 rounded-lg shadow-lg mt-6">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires annuel</h3>
-                <p className="text-4xl text-green-600 font-extrabold">{annualRevenue.toFixed(2)} €</p>
-            </div>
         </div>
     );
 }
