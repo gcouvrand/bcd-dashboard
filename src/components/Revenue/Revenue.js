@@ -246,7 +246,7 @@ function Revenue() {
                 <>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                         <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                            <h3 className="text-3xl font-semibold text-gray-200 mb-4">Chiffre d'affaires de l'année précédente</h3>
+                            <h3 className="text-3xl font-semibold text-gray-200 mb-4">CA N-1</h3>
                             <ul>
                                 {Object.entries(previousYearRevenue).map(([month, revenue]) => (
                                     <li key={month} className="flex justify-between items-center py-3 border-b border-gray-700">
@@ -257,7 +257,7 @@ function Revenue() {
                             </ul>
                         </div>
                         <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                            <h3 className="text-3xl font-semibold text-gray-200 mb-4">Chiffre d'affaires de l'année en cours</h3>
+                            <h3 className="text-3xl font-semibold text-gray-200 mb-4">CA N</h3>
                             <ul>
                                 {getMonthlyComparisons().map(({ month, revenue, previousYearRevenueMonth, difference, percentage }) => (
                                     <li key={month} className="flex flex-col py-3 border-b border-gray-700">
