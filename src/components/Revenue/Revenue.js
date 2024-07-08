@@ -5,6 +5,8 @@ import { Chart, registerables } from 'chart.js';
 import 'tailwindcss/tailwind.css';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { FaArrowUp, FaArrowDown, FaInfoCircle } from 'react-icons/fa'; // Pour les icônes
+
 
 // Enregistrer les composants nécessaires de Chart.js
 Chart.register(...registerables);
@@ -234,55 +236,69 @@ function Revenue() {
     const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
     return (
-        <div className="p-6 bg-gradient-to-r from-blue-100 to-indigo-100 min-h-screen">
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Chiffre d'affaires</h1>
+        <div className="p-6 bg-gray-900 min-h-screen font-sans text-white">
+            <h1 className="text-5xl font-extrabold text-center mb-8">Chiffre d'affaires</h1>
             {loading ? (
-                <p className="text-center text-gray-500">Chargement...</p>
+                <p className="text-center text-xl">Chargement...</p>
             ) : error ? (
-                <p className="text-center text-red-500">{error}</p>
+                <p className="text-center text-red-500 text-xl">{error}</p>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div className="bg-white p-8 rounded-lg shadow-lg">
-                            <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires de l'année précédente</h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <h3 className="text-3xl font-semibold text-gray-200 mb-4">Chiffre d'affaires de l'année précédente</h3>
                             <ul>
                                 {Object.entries(previousYearRevenue).map(([month, revenue]) => (
-                                    <li key={month} className="flex justify-between items-center py-2 border-b border-gray-200">
-                                        <span className="text-gray-800 font-medium">{formatDate(month)}</span>
-                                        <span className="text-blue-600 font-bold">{revenue.toFixed(2)} €</span>
+                                    <li key={month} className="flex justify-between items-center py-3 border-b border-gray-700">
+                                        <span className="text-gray-400 font-medium">{formatDate(month)}</span>
+                                        <span className="text-blue-400 font-bold">{revenue.toFixed(2)} €</span>
                                     </li>
                                 ))}
                             </ul>
                         </div>
-                        <div className="bg-white p-8 rounded-lg shadow-lg">
-                            <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires de l'année en cours</h3>
+                        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <h3 className="text-3xl font-semibold text-gray-200 mb-4">Chiffre d'affaires de l'année en cours</h3>
                             <ul>
                                 {getMonthlyComparisons().map(({ month, revenue, previousYearRevenueMonth, difference, percentage }) => (
-                                    <li key={month} className="flex flex-col py-2 border-b border-gray-200">
+                                    <li key={month} className="flex flex-col py-3 border-b border-gray-700">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-gray-800 font-medium">{formatDate(month)}</span>
-                                            <span className="text-green-600 font-bold">{revenue.toFixed(2)} €</span>
+                                            <span className="text-gray-400 font-medium">{formatDate(month)}</span>
+                                            <span className="text-green-400 font-bold">{revenue.toFixed(2)} €</span>
                                         </div>
                                         {month !== currentMonth && (
-                                            <div className="text-sm text-gray-600">
+                                            <div className="text-sm text-gray-500 flex items-center">
                                                 {difference >= 0 ? (
-                                                    <span className="text-green-600">+ {difference.toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                    <FaArrowUp className="text-green-400 mr-1" />
                                                 ) : (
-                                                    <span className="text-red-600">- {Math.abs(difference).toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                    <FaArrowDown className="text-red-400 mr-1" />
                                                 )}
+                                                <span>
+                                                {difference >= 0 ? (
+                                                    <span className="text-green-400">+ {difference.toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                ) : (
+                                                    <span className="text-red-400">- {Math.abs(difference).toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                )}
+                                            </span>
                                             </div>
                                         )}
                                         {month === currentMonth && (
                                             <>
-                                                <div className="text-sm text-gray-600">
-                                                    <span className="text-purple-600">Estimé: {estimatedCurrentMonthRevenue.toFixed(2)} €</span>
+                                                <div className="text-sm text-gray-500">
+                                                    <span className="text-purple-400">Estimé: {estimatedCurrentMonthRevenue.toFixed(2)} €</span>
                                                 </div>
-                                                <div className="text-sm text-gray-600">
+                                                <div className="text-sm text-gray-500 flex items-center">
                                                     {difference >= 0 ? (
-                                                        <span className="text-green-600">+ {difference.toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                        <FaArrowUp className="text-green-400 mr-1" />
                                                     ) : (
-                                                        <span className="text-red-600">- {Math.abs(difference).toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                        <FaArrowDown className="text-red-400 mr-1" />
                                                     )}
+                                                    <span>
+                                                    {difference >= 0 ? (
+                                                        <span className="text-green-400">+ {difference.toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                    ) : (
+                                                        <span className="text-red-400">- {Math.abs(difference).toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                                    )}
+                                                </span>
                                                 </div>
                                             </>
                                         )}
@@ -290,42 +306,52 @@ function Revenue() {
                                 ))}
                             </ul>
                         </div>
-                        <div className="bg-white p-8 rounded-lg shadow-lg">
-                            <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires estimé</h3>
+                        <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <h3 className="text-3xl font-semibold text-gray-200 mb-4">Chiffre d'affaires estimé</h3>
                             <ul>
                                 {getEstimatedRevenueByMonth(estimatedInvoices).map(([month, revenue]) => (
-                                    <li key={month} className="flex justify-between items-center py-2 border-b border-gray-200">
-                                        <span className="text-gray-800 font-medium">{formatDate(month)}</span>
-                                        <span className="text-purple-600 font-bold">{revenue.toFixed(2)} €</span>
+                                    <li key={month} className="flex justify-between items-center py-3 border-b border-gray-700">
+                                        <span className="text-gray-400 font-medium">{formatDate(month)}</span>
+                                        <span className="text-purple-400 font-bold">{revenue.toFixed(2)} €</span>
                                     </li>
                                 ))}
                             </ul>
                         </div>
                     </div>
-                    <div className="bg-white p-8 rounded-lg shadow-lg mb-6">
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4">Évolution du chiffre d'affaires</h3>
-                        <Bar data={getChartData()} options={{ scales: { y: { beginAtZero: true } } }} />
+                    <div className="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+                        <h3 className="text-3xl font-semibold text-gray-200 mb-4">Évolution du chiffre d'affaires</h3>
+                        <Bar data={getChartData()} options={{ scales: { y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: '#fff' } }, x: { ticks: { color: '#fff' } } }, plugins: { legend: { labels: { color: '#fff', font: { size: 16 } } } } }} />
                     </div>
-                    <div className="bg-white p-8 rounded-lg shadow-lg">
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4">Chiffre d'affaires annuel (du 1er avril jusqu'aujourd'hui)</h3>
-                        <div className="text-4xl text-green-600 font-extrabold mb-4">{annualRevenue.toFixed(2)} €</div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Chiffre d'affaires estimé (du 1er avril jusqu'à la fin du mois)</h3>
-                        <div className="text-4xl text-purple-600 font-extrabold mb-4">{yearToDateRevenue.toFixed(2)} €</div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Chiffre d'affaires de l'année précédente (du 1er avril de l'année précédente jusqu'à la fin du mois en cours de l'année précédente)</h3>
-                        <div className="text-4xl text-blue-600 font-extrabold">{previousYearToDateRevenue.toFixed(2)} €</div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-4">Comparatif avec l'année précédente</h3>
-                        <div className="text-4xl text-gray-800 font-extrabold">
-                            {difference >= 0 ? (
-                                <span className="text-green-600">+ {difference.toFixed(2)} € ({percentage.toFixed(2)}%)</span>
-                            ) : (
-                                <span className="text-red-600">- {Math.abs(difference).toFixed(2)} € ({percentage.toFixed(2)}%)</span>
-                            )}
+                    <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h3 className="text-3xl font-semibold text-gray-200 mb-4">Chiffre d'affaires annuel (du 1er avril jusqu'aujourd'hui)</h3>
+                        <div className="text-5xl text-green-400 font-extrabold mb-6">{annualRevenue.toFixed(2)} €</div>
+                        <div className="border-t border-gray-700 mt-4 pt-4">
+                            <h3 className="text-2xl font-semibold text-gray-200 mb-4">Chiffre d'affaires estimé (du 1er avril jusqu'à la fin du mois)</h3>
+                            <div className="text-5xl text-purple-400 font-extrabold mb-6">{yearToDateRevenue.toFixed(2)} €</div>
+                        </div>
+                        <div className="border-t border-gray-700 mt-4 pt-4">
+                            <h3 className="text-2xl font-semibold text-gray-200 mb-4">Chiffre d'affaires de l'année précédente (du 1er avril de l'année précédente jusqu'à la fin du mois en cours de l'année précédente)</h3>
+                            <div className="text-5xl text-blue-400 font-extrabold">{previousYearToDateRevenue.toFixed(2)} €</div>
+                        </div>
+                        <div className="border-t border-gray-700 mt-4 pt-4">
+                            <h3 className="text-2xl font-semibold text-gray-200 mb-4">Comparatif avec l'année précédente</h3>
+                            <div className="text-5xl text-gray-200 font-extrabold">
+                                {difference >= 0 ? (
+                                    <span className="text-green-400">+ {difference.toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                ) : (
+                                    <span className="text-red-400">- {Math.abs(difference).toFixed(2)} € ({percentage.toFixed(2)}%)</span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </>
             )}
         </div>
     );
+
+
+
+
 }
 
 export default Revenue;
