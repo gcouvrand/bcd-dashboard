@@ -113,17 +113,21 @@ function Revenue() {
         return Object.entries(revenueByMonth).sort(([a], [b]) => new Date(a) - new Date(b));
     };
 
+    const formatMonth = (dateString) => {
+        const date = new Date(dateString + '-01');
+        return format(date, 'LLLL', { locale: fr }).replace(/^\w/, (c) => c.toUpperCase());
+    };
+
     const getChartData = () => {
         const revenueByMonth = getRevenueByMonth(invoices);
         const estimatedRevenueByMonth = getEstimatedRevenueByMonth(estimatedInvoices);
 
-        // Liste des mois de l'année fiscale actuelle et précédente
         const fiscalMonths = [
             '2024-04', '2024-05', '2024-06', '2024-07', '2024-08', '2024-09',
             '2024-10', '2024-11', '2024-12', '2025-01', '2025-02', '2025-03'
         ];
 
-        const labels = fiscalMonths.map(month => formatDate(month));
+        const labels = fiscalMonths.map(month => formatMonth(month));
 
         const actualData = fiscalMonths.map(month => {
             const data = revenueByMonth.find(([m]) => m === month);
@@ -146,7 +150,7 @@ function Revenue() {
                 {
                     label: 'Chiffre d\'affaires réel',
                     data: actualData,
-                    backgroundColor: 'rgba(34, 197, 94, 0.6)', // Utiliser le même vert que dans l'encart
+                    backgroundColor: 'rgba(34, 197, 94, 0.6)',
                     borderColor: 'rgba(34, 197, 94, 1)',
                     borderWidth: 1
                 },
@@ -160,7 +164,7 @@ function Revenue() {
                 {
                     label: 'Chiffre d\'affaires de l\'année précédente',
                     data: previousYearData,
-                    backgroundColor: 'rgba(59, 130, 246, 0.6)', // Utiliser le même bleu que dans l'encart
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
                     borderColor: 'rgba(59, 130, 246, 1)',
                     borderWidth: 1
                 }
