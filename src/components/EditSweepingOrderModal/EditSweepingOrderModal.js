@@ -159,14 +159,21 @@ const EditSweepingOrderModal = ({ order, onClose, onSave, isAddingOrder, initial
 
         const formattedOrder = {
             ...editedOrder,
-            ramonageSlot: {
-                date: utcDate.toISOString()
-            },
             cartItems: editedOrder.cartItems.map(({ id, city, ...rest }) => rest),
             deliveryFee: parseFloat(editedOrder.deliveryFee) || 0,
             ramonageDiscount: parseFloat(editedOrder.discount) || 0,
             cartTotal: calculateTotal(editedOrder.cartItems, editedOrder.deliveryFee, editedOrder.discount)
         };
+
+        if (isAddingOrder) {
+            formattedOrder.ramonageSlot = {
+                date: utcDate.toISOString()
+            };
+        } else {
+            formattedOrder.deliverySlot = {
+                date: utcDate.toISOString()
+            };
+        }
 
         try {
             let response;
