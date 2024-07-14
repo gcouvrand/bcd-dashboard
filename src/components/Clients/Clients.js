@@ -236,7 +236,6 @@ const Clients = () => {
     // fetchClients();
   };
 
-
   const formatDate = (dateString) => {
     return dayjs(dateString).format("dddd D MMMM YYYY, HH:mm:ss");
   };
@@ -406,6 +405,11 @@ const Clients = () => {
                         <strong>Compte créé le:</strong>{" "}
                         {formatDate(client.creation_date)}
                       </p>
+                      {currentSection === "Clients sans commande de ramonage" && (
+                          <p className="text-red-600 font-bold">
+                            Nombre de stères commandées: {client.total_steres}
+                          </p>
+                      )}
                     </div>
                 ))}
               </div>
@@ -659,7 +663,7 @@ const Clients = () => {
                       </div>
                       {selectedClient?.secondTelephone && (
                           <div className="flex items-center mb-3 text-gray-600">
-                            <PhoneIcon className="h-6 w-6 text-gray-400 mr-2"/>
+                            <PhoneIcon className="h-6 w-6 text-gray-400 mr-2" />
                             <a href={`tel:${selectedClient.secondTelephone}`} className="hover:underline">
                               {selectedClient.secondTelephone}
                             </a>
