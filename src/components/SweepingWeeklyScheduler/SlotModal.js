@@ -2,17 +2,17 @@ import React, { memo } from 'react';
 import { formatDateISO, formatDateLong, days } from './utils';
 
 const SlotModal = memo(({
-    showSlotModal,
-    selectedSlot,
-    weekDates,
-    toggleSlotBlock,
-    blockedSlots,
-    setShowSlotModal,
-    handleEditOrder,
-    handleAddOrder,
-    handleDeleteOrder,
-    orders,
-}) => {
+                            showSlotModal,
+                            selectedSlot,
+                            weekDates,
+                            toggleSlotBlock,
+                            blockedSlots,
+                            setShowSlotModal,
+                            handleEditOrder,
+                            handleAddOrder,
+                            handleDeleteOrder,
+                            orders,
+                        }) => {
     if (!showSlotModal) return null;
 
     const date = weekDates[selectedSlot.dayIndex];
@@ -24,6 +24,12 @@ const SlotModal = memo(({
 
     // Filtrer la commande spécifique basée sur orderId
     const selectedOrder = tasks?.find(task => task._id === selectedSlot.orderId);
+
+    const handleDeleteConfirmation = (day, slot, orderId) => {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette commande ?")) {
+            handleDeleteOrder(day, slot, orderId);
+        }
+    };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
@@ -44,7 +50,7 @@ const SlotModal = memo(({
                                 Modifier
                             </button>
                             <button
-                                onClick={() => handleDeleteOrder(days[selectedSlot.dayIndex], slot, selectedOrder._id)}
+                                onClick={() => handleDeleteConfirmation(days[selectedSlot.dayIndex], slot, selectedOrder._id)}
                                 className="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out w-full"
                             >
                                 Supprimer
