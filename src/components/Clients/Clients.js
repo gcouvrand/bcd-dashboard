@@ -347,23 +347,41 @@ const Clients = () => {
             className="p-4 border border-gray-300 rounded w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <div className="flex justify-between items-center my-6">
-          <button
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1}
-              className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-          >
-            Précédent
-          </button>
+          <div>
+            <button
+                onClick={() => handlePageChange(page - 10)}
+                disabled={page === 1}
+                className="p-3 bg-blue-500 mr-4 text-white rounded-lg hover:bg-blue-600 transition"
+            >
+              - 10
+            </button>
+            <button
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1}
+                className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            >
+              - 1
+            </button>
+          </div>
           <span className="text-gray-700 text-lg">
           Page {page} sur {totalPages}
         </span>
-          <button
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === totalPages}
-              className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-          >
-            Suivant
-          </button>
+          <div>
+            <button
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages}
+                className="p-3 bg-blue-500 mr-4 text-white rounded-lg hover:bg-blue-600 transition"
+            >
+              + 1
+            </button>
+            <button
+                onClick={() => handlePageChange(page + 10)}
+                disabled={page === totalPages}
+                className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            >
+              + 10
+            </button>
+          </div>
         </div>
         {loading ? (
             <p className="text-center text-gray-500 text-lg">Chargement...</p>
