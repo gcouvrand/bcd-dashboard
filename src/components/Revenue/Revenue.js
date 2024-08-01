@@ -180,7 +180,7 @@ function Revenue() {
         // Calculer le CA réel des mois précédents terminés (hors mois en cours)
         const realRevenue = invoices.reduce((acc, invoice) => {
             const date = new Date(invoice.usedDate || invoice.createdAt);
-            if (date >= startDate && date < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1) && !(date.getFullYear() === 2024 && date.getMonth() === 2)) {
+            if (date >= startDate && date < new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1) && !(date.getFullYear() === 2024 && date.getMonth() === 2)) {
                 acc += (invoice.cartTotal || 0);
             }
             return acc;
@@ -198,7 +198,7 @@ function Revenue() {
         // Calculer le CA de l'année précédente à la même date
         const previousYearToDateRevenue = Object.entries(previousYearRevenue).reduce((acc, [month, revenue]) => {
             const date = new Date(month + '-01');
-            if (date >= new Date(currentDate.getFullYear() - 1, 3, 1) && date <= new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), currentDate.getDate())) {
+            if (date >= new Date(currentDate.getFullYear() - 1, 3, 1) && date <= new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), currentDate.getDate() + 1)) {
                 acc += revenue;
             }
             return acc;
@@ -210,6 +210,7 @@ function Revenue() {
             estimatedCurrentMonthRevenue // Ajouter le CA estimé pour le mois en cours
         };
     };
+
 
     const { yearToDateRevenue, previousYearToDateRevenue, estimatedCurrentMonthRevenue } = getYearToDateRevenue();
 
@@ -231,11 +232,13 @@ function Revenue() {
         return getRevenueByMonth(invoices).map(([month, revenue]) => {
             const previousYearMonth = (parseInt(month.split('-')[0], 10) - 1) + '-' + month.split('-')[1];
             const previousYearRevenueMonth = previousYearRevenue[previousYearMonth] || 0;
-            const estimatedRevenue = month === currentMonth ? estimatedCurrentMonthRevenue : revenue;
-            const { difference, percentage } = month === currentMonth ? calculateMonthlyDifference(revenue, estimatedRevenue, previousYearRevenueMonth) : calculateMonthlyDifference(revenue, revenue, previousYearRevenueMonth);
+            const isCurrentMonth = month === currentMonth;
+            const estimatedRevenue = isCurrentMonth ? estimatedCurrentMonthRevenue : revenue;
+            const { difference, percentage } = calculateMonthlyDifference(revenue, estimatedRevenue, previousYearRevenueMonth);
             return { month, revenue, previousYearRevenueMonth, estimatedRevenue, difference, percentage };
         });
     };
+
 
     const currentMonth = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
 
